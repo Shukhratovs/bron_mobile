@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../bookings/presentation/screens/bookings_screen.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 import '../../../map/presentation/screens/map_screen.dart';
@@ -46,7 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Colors.white,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,

@@ -11,9 +11,9 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: EdgeInsets.all(20.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,63 +22,33 @@ class ProfileScreen extends StatelessWidget {
                 AppStrings.navProfile,
                 style: GoogleFonts.unbounded(
                   fontSize: 22.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textWhite,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              Gap(24.h),
-
-              // User Info Card
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceDark,
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: AppColors.borderDark),
-                ),
-                child: Row(
+              const Spacer(),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(
-                      radius: 28.r,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 32.r,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    Gap(14.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppStrings.myProfile,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textWhite,
-                            ),
-                          ),
-                          Gap(4.h),
-                          Text(
-                            AppStrings.editProfile,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13.sp,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.textMuted,
-                      size: 22.r,
+                      Icons.person_outline_rounded,
+                      size: 64.r,
+                      color: AppColors.textSecondary,
+                    ),
+                    Gap(16.h),
+                    Text(
+                      'Foydalanuvchi profili',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
+              const Spacer(),
             ],
           ),
         ),

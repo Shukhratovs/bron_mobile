@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 
 class BottomNavItem {
@@ -52,7 +53,7 @@ class CustomBottomNavBar extends StatelessWidget {
         ),
       ];
 
-  static const Color activeTint = Color(0xFFDC3009);
+  static const Color activeTint = AppColors.primary;
   static const Color inactiveTint = Color(0xFF8E8E93);
 
   @override
@@ -67,17 +68,17 @@ class CustomBottomNavBar extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF242426).withValues(alpha: 0.75),
+              color: Colors.white.withValues(alpha: 0.92),
               borderRadius: BorderRadius.circular(36.r),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.16),
+                color: const Color(0xFFE5E7EB),
                 width: 1.0.w,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -105,16 +106,16 @@ class CustomBottomNavBar extends StatelessWidget {
                           width: indicatorWidth,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: activeTint.withValues(alpha: 0.22),
+                              color: activeTint.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(28.r),
                               border: Border.all(
-                                color: activeTint.withValues(alpha: 0.45),
+                                color: activeTint.withValues(alpha: 0.3),
                                 width: 1.0.w,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: activeTint.withValues(alpha: 0.2),
-                                  blurRadius: 12,
+                                  color: activeTint.withValues(alpha: 0.15),
+                                  blurRadius: 10,
                                   spreadRadius: 0,
                                   offset: const Offset(0, 2),
                                 ),
@@ -169,7 +170,7 @@ class CustomBottomNavBar extends StatelessWidget {
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11.5.sp,
                                           fontWeight: isSelected
-                                              ? FontWeight.w600
+                                              ? FontWeight.w700
                                               : FontWeight.w500,
                                           color: isSelected
                                               ? activeTint

@@ -11,7 +11,7 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(20.w),
@@ -22,8 +22,8 @@ class MapScreen extends StatelessWidget {
                 AppStrings.navMap,
                 style: GoogleFonts.unbounded(
                   fontSize: 22.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textWhite,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -34,15 +34,15 @@ class MapScreen extends StatelessWidget {
                     Icon(
                       Icons.map_outlined,
                       size: 64.r,
-                      color: AppColors.textSecondaryDark,
+                      color: AppColors.textSecondary,
                     ),
                     Gap(16.h),
                     Text(
                       'Xaritada yaqin joylarni ko\'rish',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textMuted,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],

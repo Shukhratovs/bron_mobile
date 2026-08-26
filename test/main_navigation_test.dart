@@ -13,6 +13,8 @@ void main() {
   Widget buildTestableWidget(Widget child) {
     return ScreenUtilInit(
       designSize: const Size(393, 852),
+      minTextAdapt: true,
+      splitScreenMode: true,
       builder: (context, _) => MaterialApp(
         home: child,
       ),
@@ -21,6 +23,13 @@ void main() {
 
   testWidgets('MainNavigationScreen renders bottom nav bar with all 4 tabs',
       (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(buildTestableWidget(const MainNavigationScreen()));
 
     expect(find.byType(CustomBottomNavBar), findsOneWidget);
@@ -35,6 +44,13 @@ void main() {
 
   testWidgets('MainNavigationScreen switches tabs when bottom nav item tapped',
       (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(buildTestableWidget(const MainNavigationScreen()));
 
     // Tap Map tab
