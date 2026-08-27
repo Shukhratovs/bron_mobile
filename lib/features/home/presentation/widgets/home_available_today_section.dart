@@ -109,6 +109,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
                           height: 86.h,
                           width: double.infinity,
                           fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
                           errorBuilder: (context, error, stackTrace) => Container(
                             height: 86.h,
                             color: const Color(0xFFF3F4F6),

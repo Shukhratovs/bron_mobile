@@ -76,6 +76,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                       width: double.infinity,
                       height: 280.h,
                       fit: BoxFit.cover,
+                      filterQuality: FilterQuality.high,
                       errorBuilder: (context, error, stackTrace) => Container(
                         height: 280.h,
                         color: const Color(0xFFF3F4F6),

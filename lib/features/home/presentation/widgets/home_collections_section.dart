@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 
@@ -34,19 +35,19 @@ class HomeCollectionsSection extends StatelessWidget {
           id: '1',
           title: 'Romantik kecha',
           placesCount: '18 ta joy',
-          imagePath: 'assets/images/onboarding_second.png',
+          imagePath: AppAssets.onboardingSecond,
         ),
         CollectionItem(
           id: '2',
           title: 'Do\'stlar bilan',
           placesCount: '24 ta joy',
-          imagePath: 'assets/images/onboarding_third.png',
+          imagePath: AppAssets.onboardingThird,
         ),
         CollectionItem(
           id: '3',
           title: 'Oila davrasida',
           placesCount: '15 ta joy',
-          imagePath: 'assets/images/onboarding_fourth.png',
+          imagePath: AppAssets.onboardingFourth,
         ),
       ];
 
@@ -125,6 +126,7 @@ class HomeCollectionsSection extends StatelessWidget {
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
                           errorBuilder: (context, error, stackTrace) => Container(
                             color: const Color(0xFFF3F4F6),
                           ),

@@ -62,6 +62,7 @@ class HomeBannerWidget extends StatelessWidget {
                     child: Image.asset(
                       banner.imagePath!,
                       fit: BoxFit.cover,
+                      filterQuality: FilterQuality.high,
                       errorBuilder: (context, error, stackTrace) =>
                           const SizedBox.shrink(),
                     ),

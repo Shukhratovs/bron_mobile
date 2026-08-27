@@ -1,3 +1,5 @@
+import '../../../../core/constants/app_assets.dart';
+
 class BannerModel {
   final String id;
   final String title;
@@ -19,7 +21,7 @@ class BannerModel {
           title: 'Tinch va sokin kechki ovqat',
           subtitle: 'Romantik va sokin muhitdagi restoranlar',
           discount: '-20%',
-          imagePath: 'assets/images/onboarding_second.png',
+          imagePath: AppAssets.onboardingSecond,
         ),
       ];
 }

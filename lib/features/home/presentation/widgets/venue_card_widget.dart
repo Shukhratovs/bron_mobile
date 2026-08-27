@@ -57,6 +57,7 @@ class VenueCardWidget extends StatelessWidget {
                     height: 154.h,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    filterQuality: FilterQuality.high,
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 154.h,
                       color: const Color(0xFFF3F4F6),

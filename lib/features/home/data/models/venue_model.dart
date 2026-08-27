@@ -1,3 +1,5 @@
+import '../../../../core/constants/app_assets.dart';
+
 class VenueModel {
   final String id;
   final String name;
@@ -40,11 +42,11 @@ class VenueModel {
           id: '1',
           name: 'Osteria Da Vinci',
           category: 'Restoran',
-          imagePath: 'assets/images/onboarding_first.png',
+          imagePath: AppAssets.onboardingFirst,
           images: [
-            'assets/images/onboarding_first.png',
-            'assets/images/onboarding_second.png',
-            'assets/images/onboarding_third.png',
+            AppAssets.onboardingFirst,
+            AppAssets.onboardingSecond,
+            AppAssets.onboardingThird,
           ],
           rating: 4.8,
           reviewsCount: 124,
@@ -63,10 +65,10 @@ class VenueModel {
           id: '2',
           name: 'Besh Qozon Osh Markazi',
           category: 'Restoran',
-          imagePath: 'assets/images/onboarding_second.png',
+          imagePath: AppAssets.onboardingSecond,
           images: [
-            'assets/images/onboarding_second.png',
-            'assets/images/onboarding_third.png',
+            AppAssets.onboardingSecond,
+            AppAssets.onboardingThird,
           ],
           rating: 4.9,
           reviewsCount: 340,
@@ -85,8 +87,8 @@ class VenueModel {
           id: '3',
           name: 'Cyber Arena',
           category: 'Geym klub',
-          imagePath: 'assets/images/onboarding_third.png',
-          images: ['assets/images/onboarding_third.png'],
+          imagePath: AppAssets.onboardingThird,
+          images: [AppAssets.onboardingThird],
           rating: 4.7,
           reviewsCount: 89,
           address: 'Bunyodkor ko\'chasi 15',
@@ -104,8 +106,8 @@ class VenueModel {
           id: '4',
           name: 'Barbershop No.1',
           category: 'Sartaroshxona',
-          imagePath: 'assets/images/onboarding_fourth.png',
-          images: ['assets/images/onboarding_fourth.png'],
+          imagePath: AppAssets.onboardingFourth,
+          images: [AppAssets.onboardingFourth],
           rating: 4.9,
           reviewsCount: 156,
           address: 'Amir Temur ko\'chasi 28',
@@ -123,8 +125,8 @@ class VenueModel {
           id: '5',
           name: 'Lumière Beauty',
           category: 'Go\'zallik saloni',
-          imagePath: 'assets/images/onboarding_fifth.png',
-          images: ['assets/images/onboarding_fifth.png'],
+          imagePath: AppAssets.onboardingFifth,
+          images: [AppAssets.onboardingFifth],
           rating: 4.8,
           reviewsCount: 98,
           address: 'Oybek ko\'chasi 45',

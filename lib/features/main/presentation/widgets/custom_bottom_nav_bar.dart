@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 
@@ -32,23 +33,23 @@ class CustomBottomNavBar extends StatelessWidget {
 
   static List<BottomNavItem> get items => [
         BottomNavItem(
-          svgPath: 'assets/icons/nav_icons/home.svg',
-          activeSvgPath: 'assets/icons/nav_icons/home_selected.svg',
+          svgPath: AppAssets.navHome,
+          activeSvgPath: AppAssets.navHomeSelected,
           label: AppStrings.navHome,
         ),
         BottomNavItem(
-          svgPath: 'assets/icons/nav_icons/map.svg',
-          activeSvgPath: 'assets/icons/nav_icons/map_selected.svg',
+          svgPath: AppAssets.navMap,
+          activeSvgPath: AppAssets.navMapSelected,
           label: AppStrings.navMap,
         ),
         BottomNavItem(
-          svgPath: 'assets/icons/nav_icons/bron.svg',
-          activeSvgPath: 'assets/icons/nav_icons/bron_selected.svg',
+          svgPath: AppAssets.navBron,
+          activeSvgPath: AppAssets.navBronSelected,
           label: AppStrings.navBookings,
         ),
         BottomNavItem(
-          svgPath: 'assets/icons/nav_icons/profile.svg',
-          activeSvgPath: 'assets/icons/nav_icons/profile_selected.svg',
+          svgPath: AppAssets.navProfile,
+          activeSvgPath: AppAssets.navProfileSelected,
           label: AppStrings.navProfile,
         ),
       ];
