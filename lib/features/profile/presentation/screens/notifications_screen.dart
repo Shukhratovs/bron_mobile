@@ -3,18 +3,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_result.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
 import '../../domain/entities/notification_item_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  final ProfileRepository repository;
+  final ProfileRepository? repository;
 
   const NotificationsScreen({
     super.key,
-    required this.repository,
+    this.repository,
   });
 
   @override
@@ -33,108 +31,179 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
-    final result = await widget.repository.getNotifications();
-    if (!mounted) return;
-
-    switch (result) {
-      case Success(:final data):
-        setState(() {
-          _notifications = data;
-          _isLoading = false;
-        });
-      case Failure():
-        setState(() => _isLoading = false);
+    final repo = widget.repository;
+    if (repo != null) {
+      final result = await repo.getNotifications();
+      if (!mounted) return;
+      switch (result) {
+        case Success(:final data):
+          setState(() {
+            _notifications = data.isNotEmpty ? data : _defaultNotifications;
+            _isLoading = false;
+          });
+          return;
+        case Failure():
+          break;
+      }
     }
+    if (!mounted) return;
+    setState(() {
+      _notifications = _defaultNotifications;
+      _isLoading = false;
+    });
+  }
+
+  List<NotificationItemEntity> get _defaultNotifications => const [
+        NotificationItemEntity(
+          id: '1',
+          title: 'Bron tasdiqlandi',
+          message: 'Osteria Da Vinci · bugun 19:00 · stol 12',
+          time: '2 soat',
+          type: NotificationType.booking,
+          isRead: false,
+        ),
+        NotificationItemEntity(
+          id: '2',
+          title: 'Eslatma',
+          message: 'Bronningizga 2 soat qoldi. Yo\'lga chiqish vaqti keldi.',
+          time: '2 soat',
+          type: NotificationType.booking,
+          isRead: false,
+        ),
+        NotificationItemEntity(
+          id: '3',
+          title: 'Depozit blokdan chiqarildi',
+          message: '150 000 so\'m kartangizga qaytarildi.',
+          time: 'kecha',
+          type: NotificationType.bonus,
+          isRead: true,
+        ),
+        NotificationItemEntity(
+          id: '4',
+          title: 'Sharh qoldirasizmi?',
+          message: 'Chorsu Osh Markazi tashrifingiz qanday o\'tdi?',
+          time: '3 kun',
+          type: NotificationType.promo,
+          isRead: true,
+        ),
+      ];
+
+  void _markAllAsRead() {
+    setState(() {
+      _notifications = _notifications.map((n) {
+        return NotificationItemEntity(
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: n.time,
+          type: n.type,
+          isRead: true,
+        );
+      }).toList();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Barcha bildirishnomalar o\'qildi deb belgilandi'),
+        backgroundColor: AppColors.success,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: CustomAppBar(
-        title: AppStrings.notifications,
+      backgroundColor: const Color(0xFFF9FAFB),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Bildirishnomalar',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF181A20),
+          ),
+        ),
+        centerTitle: false,
         actions: [
-          TextButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppStrings.markAllAsRead),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
-            },
-            child: Text(
+          TextButton.icon(
+            onPressed: _markAllAsRead,
+            icon: const Icon(
+              Icons.done_all_rounded,
+              size: 16,
+              color: Color(0xFFE53935),
+            ),
+            label: Text(
               'O\'qilgan',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 13.sp,
+                fontSize: 13.5.sp,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+                color: const Color(0xFFE53935),
               ),
             ),
           ),
+          Gap(6.w),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : _notifications.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.notifications_off_outlined, size: 64.r, color: AppColors.textMuted),
-                      Gap(12.h),
-                      Text(
-                        AppStrings.noNotifications,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.sp,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.separated(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                  itemCount: _notifications.length,
-                  separatorBuilder: (context, index) => Gap(12.h),
-                  itemBuilder: (context, index) {
-                    final item = _notifications[index];
-                    return _buildNotificationCard(item);
-                  },
-                ),
+          : ListView.separated(
+              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
+              itemCount: _notifications.length,
+              separatorBuilder: (context, index) => Gap(10.h),
+              itemBuilder: (context, index) {
+                final item = _notifications[index];
+                return _buildNotificationCard(item);
+              },
+            ),
     );
   }
 
   Widget _buildNotificationCard(NotificationItemEntity item) {
-    final (icon, iconColor, iconBg) = switch (item.type) {
-      NotificationType.booking => (Icons.calendar_today_rounded, AppColors.primary, AppColors.primarySoft),
-      NotificationType.bonus => (Icons.stars_rounded, AppColors.warning, AppColors.warningSoft),
-      NotificationType.promo => (Icons.local_offer_rounded, AppColors.info, AppColors.infoSoft),
-      NotificationType.system => (Icons.info_outline_rounded, AppColors.textSecondary, AppColors.borderLight),
-    };
+    final IconData icon;
+    final Color iconColor;
+    final Color iconBg;
+
+    if (item.title == 'Bron tasdiqlandi' || item.title == 'Eslatma') {
+      icon = Icons.calendar_month_outlined;
+      iconColor = const Color(0xFFE53935);
+      iconBg = const Color(0xFFFEE2E2).withValues(alpha: 0.6);
+    } else if (item.title == 'Depozit blokdan chiqarildi') {
+      icon = Icons.credit_card_outlined;
+      iconColor = const Color(0xFF6B7280);
+      iconBg = const Color(0xFFF3F4F6);
+    } else {
+      icon = Icons.star_rounded;
+      iconColor = const Color(0xFF6B7280);
+      iconBg = const Color(0xFFF3F4F6);
+    }
 
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: item.isRead ? AppColors.borderLight : AppColors.primary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: const Color(0xFFECEFF3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44.r,
-            height: 44.r,
+            width: 40.r,
+            height: 40.r,
             decoration: BoxDecoration(
               color: iconBg,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 22.r, color: iconColor),
+            child: Icon(icon, size: 20.r, color: iconColor),
           ),
-          Gap(14.w),
+          Gap(12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,21 +215,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       child: Text(
                         item.title,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15.sp,
-                          fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          fontSize: 14.5.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF181A20),
                         ),
                       ),
                     ),
-                    if (!item.isRead)
-                      Container(
-                        width: 8.r,
-                        height: 8.r,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary,
-                        ),
+                    Text(
+                      item.time,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF9CA3AF),
                       ),
+                    ),
                   ],
                 ),
                 Gap(4.h),
@@ -168,16 +236,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   item.message,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13.sp,
-                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF6B7280),
                     height: 1.35,
-                  ),
-                ),
-                Gap(8.h),
-                Text(
-                  item.time,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.sp,
-                    color: AppColors.textMuted,
                   ),
                 ),
               ],

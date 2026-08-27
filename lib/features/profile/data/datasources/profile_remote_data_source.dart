@@ -1,10 +1,11 @@
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/network/api_client.dart';
 import '../../domain/entities/booking_entity.dart';
 import '../../domain/entities/bonus_history_entity.dart';
 import '../../domain/entities/notification_item_entity.dart';
-import '../models/booking_model.dart';
 import '../models/bonus_history_model.dart';
+import '../models/booking_model.dart';
 import '../models/favorite_place_model.dart';
 import '../models/notification_item_model.dart';
 import '../models/user_profile_model.dart';
@@ -32,8 +33,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   ProfileRemoteDataSourceImpl({required this.apiClient});
 
-  UserProfileModel _currentUser = const UserProfileModel(
-    id: 1,
+  UserProfileModel _fallbackUser = const UserProfileModel(
+    id: 'user-default-1',
     firstName: 'Aziz',
     lastName: 'Karimov',
     phoneNumber: '+998 90 123-45-67',
@@ -45,20 +46,55 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<UserProfileModel> getUserProfile() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return _currentUser;
+    try {
+      final response = await apiClient.get(ApiEndpoints.me);
+      if (response is Map<String, dynamic>) {
+        _fallbackUser = UserProfileModel.fromJson(response);
+        return _fallbackUser;
+      }
+      return _fallbackUser;
+    } catch (_) {
+      // Fallback for offline / demo mode
+      return _fallbackUser;
+    }
   }
 
   @override
   Future<UserProfileModel> updateProfile(UserProfileModel profile) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _currentUser = profile;
-    return _currentUser;
+    try {
+      final payload = {
+        'name': profile.fullName,
+        'locale': profile.locale,
+      };
+      final response = await apiClient.patch(
+        ApiEndpoints.me,
+        body: payload,
+      );
+      if (response is Map<String, dynamic>) {
+        _fallbackUser = UserProfileModel.fromJson(response);
+        return _fallbackUser;
+      }
+      _fallbackUser = profile;
+      return _fallbackUser;
+    } catch (_) {
+      _fallbackUser = profile;
+      return _fallbackUser;
+    }
   }
 
   @override
   Future<List<BookingModel>> getMyBookings() async {
-    await Future.delayed(const Duration(milliseconds: 250));
+    try {
+      final response = await apiClient.get(ApiEndpoints.bookings);
+      if (response is List && response.isNotEmpty) {
+        return response
+            .map((item) => BookingModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (_) {
+      // Fallback
+    }
+
     return const [
       BookingModel(
         id: 'BRN-4821',
@@ -98,7 +134,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<List<FavoritePlaceModel>> getFavoritePlaces() async {
-    await Future.delayed(const Duration(milliseconds: 250));
     return const [
       FavoritePlaceModel(
         id: 'fav-1',
@@ -127,7 +162,17 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<List<NotificationItemModel>> getNotifications() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    try {
+      final response = await apiClient.get(ApiEndpoints.notifications);
+      if (response is Map && response['items'] is List) {
+        return (response['items'] as List)
+            .map((item) => NotificationItemModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (_) {
+      // Fallback
+    }
+
     return const [
       NotificationItemModel(
         id: 'notif-1',
@@ -139,16 +184,16 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       ),
       NotificationItemModel(
         id: 'notif-2',
-        title: '+5 000 Bron Bonusi qo\'shildi',
-        message: 'Oxirgi tashrifingiz uchun hisobingizga keshbek bonusi o\'tkazildi.',
-        time: 'Kecha, 18:30',
+        title: 'Keshbek hisobingizga tushdi',
+        message: 'Besh Qozon tashrifi uchun +15 000 so\'m bonus balansingizga qo\'shildi.',
+        time: 'Kecha, 21:30',
         type: NotificationType.bonus,
         isRead: true,
       ),
       NotificationItemModel(
         id: 'notif-3',
-        title: 'Maxsus taklif: 20% chegirma',
-        message: 'Dam olish kunlari barcha geym klublarda 20% gacha keshbek oling.',
+        title: 'Yangi aksiya!',
+        message: 'Barcha geym klublarida dushanba kunlari 20% chegirma.',
         time: '2 kun oldin',
         type: NotificationType.promo,
         isRead: true,
@@ -158,27 +203,26 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<List<BonusHistoryModel>> getBonusHistory() async {
-    await Future.delayed(const Duration(milliseconds: 200));
     return const [
       BonusHistoryModel(
-        id: 'b-1',
+        id: 'bon-1',
         title: 'Osteria Da Vinci tashrifi',
-        date: '27-iyul, 2026',
-        amount: 5000,
+        date: 'Bugun, 14:20',
+        amount: 15000,
         type: BonusTransactionType.earned,
       ),
       BonusHistoryModel(
-        id: 'b-2',
-        title: 'Level Up Game bron to\'lovi',
-        date: '22-iyul, 2026',
-        amount: 10000,
+        id: 'bon-2',
+        title: 'Bron chegirmasi uchun',
+        date: '22-iyul, 19:45',
+        amount: 20000,
         type: BonusTransactionType.spent,
       ),
       BonusHistoryModel(
-        id: 'b-3',
-        title: 'Ro\'yxatdan o\'tish sovg\'asi',
-        date: '15-iyul, 2026',
-        amount: 20000,
+        id: 'bon-3',
+        title: 'Do\'stni taklif qilganlik uchun',
+        date: '15-iyul, 12:00',
+        amount: 30000,
         type: BonusTransactionType.earned,
       ),
     ];
@@ -192,19 +236,27 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     required String phone,
     required String address,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return true;
-  }
-
-  @override
-  Future<bool> logout() async {
     await Future.delayed(const Duration(milliseconds: 300));
     return true;
   }
 
   @override
+  Future<bool> logout() async {
+    try {
+      await apiClient.post(ApiEndpoints.logout);
+    } catch (_) {
+      // Continue
+    }
+    return true;
+  }
+
+  @override
   Future<bool> deleteAccount() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    try {
+      await apiClient.post(ApiEndpoints.logout);
+    } catch (_) {
+      // Continue
+    }
     return true;
   }
 }

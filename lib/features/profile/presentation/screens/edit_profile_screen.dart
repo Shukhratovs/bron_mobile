@@ -123,35 +123,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final avatarPath = widget.user.avatarUrl ?? AppAssets.me;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Profilni tahrirlash',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF181A20),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+            onPressed: () => Navigator.of(context).pop(),
           ),
+          title: Text(
+            'Profilni tahrirlash',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF181A20),
+            ),
+          ),
+          centerTitle: false,
         ),
-        centerTitle: false,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     // 1. Avatar with Green Status Dot and Change Photo link
                     Center(
                       child: Column(
@@ -416,6 +420,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -437,10 +442,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return TextField(
       controller: controller,
+      cursorColor: AppColors.primary,
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
       style: GoogleFonts.plusJakartaSans(
         fontSize: 15.sp,
         fontWeight: FontWeight.w500,
-        color: AppColors.textPrimary,
+        color: const Color(0xFF181A20),
       ),
       decoration: InputDecoration(
         hintText: hintText,

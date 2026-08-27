@@ -103,5 +103,7 @@ class DummyApiClient implements ApiClient {
   @override
   Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body}) async => null;
   @override
+  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body}) async => null;
+  @override
   Future<dynamic> delete(String url, {Map<String, String>? headers}) async => null;
 }

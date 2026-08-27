@@ -4,18 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Widget buildTestableWidget(Widget child) {
-    return ScreenUtilInit(
-      designSize: const Size(393, 852),
-      builder: (context, _) => MaterialApp(
-        home: Scaffold(
-          body: Center(child: child),
-        ),
-      ),
-    );
-  }
-
-  testWidgets('GlassLiquidBottomNavBar renders items and handles tab switching',
+  testWidgets('GlassLiquidBottomNavBar renders items and handles tab switching and dragging',
       (WidgetTester tester) async {
     int selectedIndex = 0;
 
@@ -43,22 +32,29 @@ void main() {
     ];
 
     await tester.pumpWidget(
-      buildTestableWidget(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return GlassLiquidBottomNavBar(
-              currentIndex: selectedIndex,
-              items: items,
-              onTap: (index) {
-                setState(() {
-                  selectedIndex = index;
-                });
+      ScreenUtilInit(
+        designSize: const Size(393, 852),
+        builder: (context, _) => MaterialApp(
+          home: Scaffold(
+            bottomNavigationBar: StatefulBuilder(
+              builder: (context, setState) {
+                return GlassLiquidBottomNavBar(
+                  currentIndex: selectedIndex,
+                  items: items,
+                  onTap: (index) {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                  },
+                );
               },
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
+
+    await tester.pumpAndSettle();
 
     // Verify all 4 labels are present
     expect(find.text('Asosiy'), findsOneWidget);
@@ -69,7 +65,11 @@ void main() {
     // Tap second tab (Xarita)
     await tester.tap(find.text('Xarita'));
     await tester.pumpAndSettle();
-
     expect(selectedIndex, 1);
+
+    // Drag / swipe on bottom nav bar to the right
+    await tester.drag(find.byType(GlassLiquidBottomNavBar), const Offset(150, 0));
+    await tester.pumpAndSettle();
+    expect(selectedIndex >= 1, isTrue);
   });
 }

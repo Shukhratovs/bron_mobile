@@ -107,65 +107,71 @@ class _SmsVerificationScreenState extends State<SmsVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Tasdiqlash',
-          style: GoogleFonts.unbounded(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
+            onPressed: () => Navigator.pop(context),
           ),
+          title: Text(
+            'Tasdiqlash',
+            style: GoogleFonts.unbounded(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'SMS kodni kiriting',
-              style: GoogleFonts.unbounded(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+        body: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'SMS kodni kiriting',
+                style: GoogleFonts.unbounded(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
-            Gap(8.h),
-            Text(
-              '${widget.phoneNumber} raqamiga 5 xonali kod yuborildi',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13.sp,
-                color: AppColors.textSecondary,
+              Gap(8.h),
+              Text(
+                '${widget.phoneNumber} raqamiga 5 xonali kod yuborildi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.sp,
+                  color: AppColors.textSecondary,
+                ),
               ),
-            ),
-            Gap(32.h),
+              Gap(32.h),
 
-            // 5-digit PIN input boxes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(5, (index) {
-                return SizedBox(
-                  width: 58.w,
-                  height: 64.h,
-                  child: TextField(
-                    controller: _controllers[index],
-                    focusNode: _focusNodes[index],
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    style: GoogleFonts.unbounded(
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.w700,
-                      color: _hasError ? AppColors.error : AppColors.textPrimary,
-                    ),
+              // 5-digit PIN input boxes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(5, (index) {
+                  return SizedBox(
+                    width: 58.w,
+                    height: 64.h,
+                    child: TextField(
+                      controller: _controllers[index],
+                      focusNode: _focusNodes[index],
+                      cursorColor: AppColors.primary,
+                      onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.unbounded(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w700,
+                        color: _hasError ? AppColors.error : AppColors.textPrimary,
+                      ),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(1),
@@ -259,6 +265,7 @@ class _SmsVerificationScreenState extends State<SmsVerificationScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

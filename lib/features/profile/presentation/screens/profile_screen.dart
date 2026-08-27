@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
@@ -7,7 +8,11 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
-import '../../../booking/presentation/screens/bind_card_screen.dart';
+import '../../../../core/network/auth_local_storage.dart';
+import '../../../auth/data/datasources/auth_remote_data_source.dart';
+import '../../../auth/data/repositories/auth_repository_impl.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import '../../data/datasources/profile_remote_data_source.dart';
 import '../../data/repositories/profile_repository_impl.dart';
 import '../../domain/entities/user_profile_entity.dart';
@@ -22,14 +27,17 @@ import 'bonus_screen.dart';
 import 'edit_profile_screen.dart';
 import 'favorites_screen.dart';
 import 'help_faq_screen.dart';
+import 'my_cards_screen.dart';
 import 'notifications_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final ProfileRepository? repository;
+  final AuthRepository? authRepository;
 
   const ProfileScreen({
     super.key,
     this.repository,
+    this.authRepository,
   });
 
   @override
@@ -38,6 +46,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileRepository _repository;
+  late final AuthRepository _authRepository;
   UserProfileEntity? _user;
   bool _isLoading = true;
   String _appVersion = '1.0.0';
@@ -45,11 +54,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    final apiClient = StandardApiClient();
     _repository = widget.repository ??
         ProfileRepositoryImpl(
           remoteDataSource: ProfileRemoteDataSourceImpl(
-            apiClient: StandardApiClient(),
+            apiClient: apiClient,
           ),
+        );
+    _authRepository = widget.authRepository ??
+        AuthRepositoryImpl(
+          remoteDataSource: AuthRemoteDataSourceImpl(apiClient: apiClient),
+          authLocalStorage: DummyAuthLocalStorage(),
         );
     _loadUserProfile();
     _loadAppVersion();
@@ -84,6 +99,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _onLoginPressed() async {
+    final loggedIn = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(authRepository: _authRepository),
+      ),
+    );
+    if (loggedIn == true && mounted) {
+      _loadUserProfile();
+    }
+  }
+
   void _onEditProfile() async {
     if (_user == null) return;
     final updated = await Navigator.of(context).push<UserProfileEntity>(
@@ -110,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _onCardsTap() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const BindCardScreen(),
+        builder: (_) => const MyCardsScreen(),
       ),
     );
   }
@@ -218,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ProfileHeaderWidget(
                                 user: _user,
                                 onEditPressed: _onEditProfile,
-                                onLoginPressed: () => _loadUserProfile(),
+                                onLoginPressed: _onLoginPressed,
                               ),
                             ],
                           ),
@@ -337,4 +363,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
+}
+
+class DummyAuthLocalStorage implements AuthLocalStorage {
+  @override
+  ValueListenable<bool> get authStateListenable => ValueNotifier(false);
+  @override
+  Future<void> clear() async {}
+  @override
+  Future<String?> getAccessToken() async => null;
+  @override
+  Future<String?> getTokenType() async => null;
+  @override
+  Future<Map<String, dynamic>?> getUser() async => null;
+  @override
+  bool get isLoggedIn => false;
+  @override
+  Future<void> saveAuthToken({required String accessToken, required String tokenType, required int expiresIn}) async {}
+  @override
+  Future<void> saveUser(Map<String, dynamic> userMap) async {}
 }

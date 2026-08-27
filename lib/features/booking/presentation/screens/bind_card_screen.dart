@@ -42,30 +42,34 @@ class _BindCardScreenState extends State<BindCardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Karta biriktirish',
-          style: GoogleFonts.unbounded(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
+            onPressed: () => Navigator.pop(context),
           ),
+          title: Text(
+            'Karta biriktirish',
+            style: GoogleFonts.unbounded(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        body: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Notice Box
             Container(
               padding: EdgeInsets.all(16.w),
@@ -124,6 +128,8 @@ class _BindCardScreenState extends State<BindCardScreen> {
             TextField(
               controller: _cardNumberController,
               keyboardType: TextInputType.number,
+              cursorColor: AppColors.primary,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               style: GoogleFonts.plusJakartaSans(
                 color: AppColors.textPrimary,
                 fontSize: 16.sp,
@@ -168,6 +174,8 @@ class _BindCardScreenState extends State<BindCardScreen> {
             TextField(
               controller: _expiryController,
               keyboardType: TextInputType.number,
+              cursorColor: AppColors.primary,
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               style: GoogleFonts.plusJakartaSans(
                 color: AppColors.textPrimary,
                 fontSize: 16.sp,
@@ -234,6 +242,7 @@ class _BindCardScreenState extends State<BindCardScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }
