@@ -31,6 +31,7 @@ void main() {
     });
 
     await tester.pumpWidget(buildTestableWidget(const MainNavigationScreen()));
+    await tester.pumpAndSettle();
 
     expect(find.byType(CustomBottomNavBar), findsOneWidget);
     expect(find.text(AppStrings.navHome), findsOneWidget);
@@ -52,6 +53,7 @@ void main() {
     });
 
     await tester.pumpWidget(buildTestableWidget(const MainNavigationScreen()));
+    await tester.pump();
 
     // Tap Map tab
     await tester.tap(find.text(AppStrings.navMap));
@@ -72,5 +74,8 @@ void main() {
     await tester.tap(find.text(AppStrings.navHome));
     await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
   });
 }

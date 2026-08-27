@@ -5,6 +5,7 @@ import 'package:bron_mobile/features/profile/data/datasources/profile_remote_dat
 import 'package:bron_mobile/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:bron_mobile/features/profile/domain/entities/booking_entity.dart';
 import 'package:bron_mobile/features/profile/domain/entities/user_profile_entity.dart';
+import 'package:bron_mobile/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:bron_mobile/features/profile/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -56,6 +57,41 @@ void main() {
     expect(find.text(AppStrings.help), findsOneWidget);
     expect(find.text(AppStrings.becomePartner), findsOneWidget);
     expect(find.text(AppStrings.logoutAccount), findsOneWidget);
+  });
+
+  testWidgets('EditProfileScreen renders form fields and save button',
+      (WidgetTester tester) async {
+    final dataSource = ProfileRemoteDataSourceImpl(apiClient: DummyApiClient());
+    final repository = ProfileRepositoryImpl(remoteDataSource: dataSource);
+    const user = UserProfileEntity(
+      id: 1,
+      firstName: 'Aziz',
+      lastName: 'Karimov',
+      phoneNumber: '+998 90 123-45-67',
+      birthDate: '15.08.1996',
+      bonusBalance: 25000,
+    );
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(393, 852),
+        builder: (context, child) {
+          return MaterialApp(
+            home: EditProfileScreen(user: user, repository: repository),
+          );
+        },
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Profilni tahrirlash'), findsOneWidget);
+    expect(find.text("Rasmni o'zgartirish"), findsOneWidget);
+    expect(find.text('Ism'), findsOneWidget);
+    expect(find.text('Familiya'), findsOneWidget);
+    expect(find.text('Telefon'), findsOneWidget);
+    expect(find.text("Tug'ilgan kun"), findsOneWidget);
+    expect(find.text('Saqlash'), findsOneWidget);
   });
 }
 

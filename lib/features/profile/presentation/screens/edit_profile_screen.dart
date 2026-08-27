@@ -6,7 +6,6 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_result.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
 import '../../domain/entities/user_profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 
@@ -27,9 +26,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
-  late final TextEditingController _phoneController;
   late final TextEditingController _birthDateController;
-  late String _selectedGender;
   bool _isSaving = false;
 
   @override
@@ -37,18 +34,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _firstNameController = TextEditingController(text: widget.user.firstName);
     _lastNameController = TextEditingController(text: widget.user.lastName);
-    _phoneController = TextEditingController(text: widget.user.phoneNumber);
-    _birthDateController = TextEditingController(text: widget.user.birthDate ?? '15.08.1996');
-    _selectedGender = widget.user.gender ?? AppStrings.genderMale;
+    _birthDateController = TextEditingController(
+      text: widget.user.birthDate != null && widget.user.birthDate!.isNotEmpty
+          ? widget.user.birthDate!
+          : '',
+    );
   }
 
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _phoneController.dispose();
     _birthDateController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectBirthDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(1996, 8, 15),
+      firstDate: DateTime(1940),
+      lastDate: now,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final day = picked.day.toString().padLeft(2, '0');
+      final month = picked.month.toString().padLeft(2, '0');
+      final year = picked.year.toString();
+      setState(() {
+        _birthDateController.text = '$day.$month.$year';
+      });
+    }
   }
 
   Future<void> _saveProfile() async {
@@ -57,9 +86,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final updated = widget.user.copyWith(
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
       birthDate: _birthDateController.text.trim(),
-      gender: _selectedGender,
     );
 
     final result = await widget.repository.updateProfile(updated);
@@ -86,223 +113,360 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  String _formatPhoneSuffix(String fullPhone) {
+    var cleaned = fullPhone.replaceAll('+998', '').trim();
+    if (cleaned.isEmpty) return '90 123-45-67';
+    return cleaned;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final avatarPath = widget.user.avatarUrl ?? AppAssets.me;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: CustomAppBar(
-        title: AppStrings.editProfile,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Profilni tahrirlash',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF181A20),
+          ),
+        ),
+        centerTitle: false,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Avatar with change photo button
-              Center(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 88.r,
-                      height: 88.r,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary, width: 2.5),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(44.r),
-                        child: Image.asset(
-                          widget.user.avatarUrl ?? AppAssets.me,
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.high,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: AppColors.primarySoft,
-                            child: Icon(
-                              Icons.person_rounded,
-                              size: 48.r,
-                              color: AppColors.primary,
+                    // 1. Avatar with Green Status Dot and Change Photo link
+                    Center(
+                      child: Column(
+                        children: [
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 90.r,
+                                height: 90.r,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFFF3F4F6),
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    avatarPath,
+                                    fit: BoxFit.cover,
+                                    filterQuality: FilterQuality.high,
+                                    errorBuilder: (context, error, stackTrace) => Container(
+                                      color: AppColors.primarySoft,
+                                      child: Icon(
+                                        Icons.person_rounded,
+                                        size: 48.r,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 2.w,
+                                bottom: 4.h,
+                                child: Container(
+                                  width: 16.r,
+                                  height: 16.r,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Gap(12.h),
+                          GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Rasm tanlash oynasi ochilmoqda...'),
+                                  backgroundColor: AppColors.primary,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "Rasmni o'zgartirish",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14.5.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                    Gap(8.h),
-                    GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Rasm tanlash oynasi ochilmoqda...'),
-                            backgroundColor: AppColors.primary,
+                    Gap(24.h),
+
+                    // 2. Ism
+                    _buildFieldLabel('Ism'),
+                    Gap(6.h),
+                    _buildTextInput(
+                      controller: _firstNameController,
+                      prefixIcon: Icons.person_outline_rounded,
+                      hintText: 'Ismingizni kiriting',
+                    ),
+                    Gap(16.h),
+
+                    // 3. Familiya
+                    _buildFieldLabel('Familiya'),
+                    Gap(6.h),
+                    _buildTextInput(
+                      controller: _lastNameController,
+                      prefixIcon: Icons.person_outline_rounded,
+                      hintText: 'Familiyangizni kiriting',
+                    ),
+                    Gap(16.h),
+
+                    // 4. Telefon (Disabled / Protected)
+                    _buildFieldLabel('Telefon'),
+                    Gap(6.h),
+                    Container(
+                      height: 52.h,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(14.r),
+                        border: Border.all(color: const Color(0xFFECEFF3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Gap(14.w),
+                          // Uzbekistan Flag Mini Badge
+                          Container(
+                            width: 20.r,
+                            height: 20.r,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: ClipOval(
+                              child: Column(
+                                children: [
+                                  Expanded(child: Container(color: const Color(0xFF0099B5))),
+                                  Container(height: 0.8, color: const Color(0xFFD62612)),
+                                  Expanded(child: Container(color: Colors.white)),
+                                  Container(height: 0.8, color: const Color(0xFFD62612)),
+                                  Expanded(child: Container(color: const Color(0xFF1EB53A))),
+                                ],
+                              ),
+                            ),
                           ),
-                        );
-                      },
-                      child: Text(
-                        AppStrings.changePhoto,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          Gap(6.w),
+                          Text(
+                            '+998',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14.5.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF8E8E93),
+                            ),
+                          ),
+                          Gap(2.w),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 18.r,
+                            color: const Color(0xFF8E8E93),
+                          ),
+                          Gap(10.w),
+                          Container(
+                            width: 1,
+                            height: 26.h,
+                            color: const Color(0xFFE5E7EB),
+                          ),
+                          Gap(14.w),
+                          Expanded(
+                            child: Text(
+                              _formatPhoneSuffix(widget.user.phoneNumber),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14.5.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF8E8E93),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Gap(6.h),
+                    Text(
+                      "Raqamni o'zgartirish uchun qo'llab-quvvatlashga murojaat qiling",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF8E8E93),
+                      ),
+                    ),
+                    Gap(16.h),
+
+                    // 5. Tug'ilgan kun
+                    _buildFieldLabel("Tug'ilgan kun"),
+                    Gap(6.h),
+                    GestureDetector(
+                      onTap: _selectBirthDate,
+                      child: Container(
+                        height: 52.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(color: const Color(0xFFECEFF3)),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 14.w),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              size: 20.r,
+                              color: const Color(0xFF8E8E93),
+                            ),
+                            Gap(12.w),
+                            Expanded(
+                              child: Text(
+                                _birthDateController.text.isNotEmpty
+                                    ? _birthDateController.text
+                                    : 'KK / OO / YYYY',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14.5.sp,
+                                  fontWeight: _birthDateController.text.isNotEmpty
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                  color: _birthDateController.text.isNotEmpty
+                                      ? AppColors.textPrimary
+                                      : const Color(0xFFC7C7CC),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                    Gap(6.h),
+                    Text(
+                      "Tug'ilgan kuningizda restoranlardan bonus olasiz",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF8E8E93),
+                      ),
+                    ),
+                    Gap(24.h),
                   ],
                 ),
               ),
-              Gap(24.h),
+            ),
 
-              // Form fields
-              _buildInputField(
-                label: AppStrings.firstName,
-                controller: _firstNameController,
-                icon: Icons.person_outline_rounded,
-              ),
-              Gap(16.h),
-              _buildInputField(
-                label: AppStrings.lastName,
-                controller: _lastNameController,
-                icon: Icons.person_outline_rounded,
-              ),
-              Gap(16.h),
-
-              // Gender Selector
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  AppStrings.gender,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+            // Bottom Save Button
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52.h,
+                child: ElevatedButton(
+                  onPressed: _isSaving ? null : _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
                   ),
+                  child: _isSaving
+                      ? SizedBox(
+                          width: 22.r,
+                          height: 22.r,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          'Saqlash',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
-              Gap(8.h),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildGenderOption(AppStrings.genderMale),
-                  ),
-                  Gap(12.w),
-                  Expanded(
-                    child: _buildGenderOption(AppStrings.genderFemale),
-                  ),
-                ],
-              ),
-              Gap(16.h),
-
-              _buildInputField(
-                label: AppStrings.birthDate,
-                controller: _birthDateController,
-                icon: Icons.calendar_today_outlined,
-              ),
-              Gap(16.h),
-
-              _buildInputField(
-                label: AppStrings.phoneNumber,
-                controller: _phoneController,
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                readOnly: true,
-                helperText: 'Telefon raqam o\'zgartirilmaydi',
-              ),
-              Gap(32.h),
-
-              // Save Button
-              ElevatedButton(
-                onPressed: _isSaving ? null : _saveProfile,
-                child: _isSaving
-                    ? SizedBox(
-                        width: 22.r,
-                        height: 22.r,
-                        child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                      )
-                    : Text(AppStrings.saveChanges),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    bool readOnly = false,
-    String? helperText,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        Gap(6.h),
-        TextField(
-          controller: controller,
-          readOnly: readOnly,
-          keyboardType: keyboardType,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: readOnly ? AppColors.backgroundLight : AppColors.surfaceLight,
-            helperText: helperText,
-            helperStyle: GoogleFonts.plusJakartaSans(fontSize: 11.sp, color: AppColors.textMuted),
-            prefixIcon: Icon(icon, size: 20.r, color: AppColors.textMuted),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14.r),
-              borderSide: const BorderSide(color: AppColors.borderLight),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14.r),
-              borderSide: const BorderSide(color: AppColors.borderLight),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14.r),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-            ),
-          ),
-        ),
-      ],
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: GoogleFonts.plusJakartaSans(
+        fontSize: 14.sp,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF181A20),
+      ),
     );
   }
 
-  Widget _buildGenderOption(String gender) {
-    final isSelected = _selectedGender == gender;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedGender = gender),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 13.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primarySoft : AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.borderLight,
-            width: isSelected ? 1.5 : 1,
-          ),
+  Widget _buildTextInput({
+    required TextEditingController controller,
+    required IconData prefixIcon,
+    required String hintText,
+  }) {
+    return TextField(
+      controller: controller,
+      style: GoogleFonts.plusJakartaSans(
+        fontSize: 15.sp,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 14.5.sp,
+          color: const Color(0xFFC7C7CC),
         ),
-        child: Center(
-          child: Text(
-            gender,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14.sp,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppColors.primary : AppColors.textPrimary,
-            ),
-          ),
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: Icon(
+          prefixIcon,
+          size: 20.r,
+          color: const Color(0xFF8E8E93),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: const BorderSide(color: Color(0xFFECEFF3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: const BorderSide(color: Color(0xFFECEFF3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
     );

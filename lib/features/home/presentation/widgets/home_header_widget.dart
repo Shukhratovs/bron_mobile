@@ -23,18 +23,19 @@ class HomeHeaderWidget extends StatelessWidget {
       children: [
         // Bron Brand Logo (Dark text for Light mode)
         BronLogo(
-          width: 86.w,
-          height: 32.h,
+          width: 80.w,
+          height: 30.h,
           isDarkText: true,
         ),
 
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // City Location Selector Pill
             GestureDetector(
               onTap: onCityTap,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(20.r),
