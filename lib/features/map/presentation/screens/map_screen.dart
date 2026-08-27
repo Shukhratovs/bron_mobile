@@ -297,7 +297,7 @@ class _MapScreenState extends State<MapScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: EdgeInsets.fromLTRB(16.w, 48.h, 16.w, 14.h),
+              padding: EdgeInsets.fromLTRB(16.w, 70 .h, 16.w, 14.h),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(
@@ -517,11 +517,11 @@ class _MapScreenState extends State<MapScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20.r),
       child: Container(
-        width: 38.r,
-        height: 38.r,
-        decoration: const BoxDecoration(
+        width: 40.w,
+        height: 40.h,
+        decoration:  BoxDecoration(
           color: Color(0xFFF9FAFB),
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(16.r)
         ),
         child: Icon(
           icon,
