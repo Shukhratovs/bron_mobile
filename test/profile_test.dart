@@ -3,7 +3,6 @@ import 'package:bron_mobile/core/network/api_client.dart';
 import 'package:bron_mobile/core/network/api_result.dart';
 import 'package:bron_mobile/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:bron_mobile/features/profile/data/repositories/profile_repository_impl.dart';
-import 'package:bron_mobile/features/profile/domain/entities/booking_entity.dart';
 import 'package:bron_mobile/features/profile/domain/entities/user_profile_entity.dart';
 import 'package:bron_mobile/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:bron_mobile/features/profile/presentation/screens/profile_screen.dart';
@@ -21,12 +20,6 @@ void main() {
     if (userResult is Success<UserProfileEntity>) {
       expect(userResult.data.firstName, 'Aziz');
       expect(userResult.data.bonusBalance, 25000);
-    }
-
-    final bookingsResult = await repository.getMyBookings();
-    expect(bookingsResult, isA<Success<List<BookingEntity>>>());
-    if (bookingsResult is Success<List<BookingEntity>>) {
-      expect(bookingsResult.data.length, greaterThanOrEqualTo(1));
     }
   });
 

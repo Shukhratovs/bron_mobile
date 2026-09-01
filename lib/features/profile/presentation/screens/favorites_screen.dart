@@ -3,12 +3,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../../core/network/api_result.dart';
-import '../../../home/data/models/venue_model.dart';
 import '../../../venue_detail/presentation/screens/venue_detail_screen.dart';
 import '../../domain/entities/favorite_place_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final ProfileRepository repository;
@@ -94,26 +94,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   void _onVenueTap(FavoritePlaceEntity place) {
-    final slots = _getSlotsForPlace(place.name);
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => VenueDetailScreen(
-          venue: VenueModel(
-            id: place.id,
-            name: place.name,
-            category: place.category,
-            imagePath: place.imagePath,
-            images: [place.imagePath],
-            rating: place.rating,
-            reviewsCount: place.reviewsCount,
-            address: 'Toshkent shahar',
-            distance: place.location,
-            workingHours: '11:00 - 23:00',
-            priceRange: place.averageCheck,
-            availableTimeSlots: slots,
-            description: place.name,
-          ),
-        ),
+        builder: (_) => VenueDetailScreen(venueId: place.id),
       ),
     );
   }
@@ -127,7 +110,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+          icon: const AppIcon(AppAssets.iconArrowLeftLine, color: Color(0xFF181A20)),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -141,7 +124,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         centerTitle: false,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? Padding(padding: EdgeInsets.all(16.w), child: const ListRowSkeletonGroup(count: 5))
           : SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Column(

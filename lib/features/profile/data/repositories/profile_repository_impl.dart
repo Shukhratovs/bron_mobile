@@ -1,6 +1,5 @@
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/network_exceptions.dart';
-import '../../domain/entities/booking_entity.dart';
 import '../../domain/entities/bonus_history_entity.dart';
 import '../../domain/entities/favorite_place_entity.dart';
 import '../../domain/entities/notification_item_entity.dart';
@@ -32,18 +31,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
       final model = UserProfileModel.fromEntity(profile);
       final updated = await remoteDataSource.updateProfile(model);
       return ApiResult.success(updated);
-    } on NetworkException catch (e) {
-      return ApiResult.failure(e);
-    } catch (e) {
-      return ApiResult.failure(NetworkException(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<ApiResult<List<BookingEntity>>> getMyBookings() async {
-    try {
-      final bookings = await remoteDataSource.getMyBookings();
-      return ApiResult.success(bookings);
     } on NetworkException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {

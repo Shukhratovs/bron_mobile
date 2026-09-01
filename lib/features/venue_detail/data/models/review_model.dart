@@ -1,44 +1,49 @@
+/// `ReviewOut` — `GET /venues/{id}/reviews`, `POST/PATCH /bookings/{id}/review`.
 class ReviewModel {
   final String id;
-  final String authorName;
-  final String? avatarUrl;
-  final double rating;
-  final String date;
-  final String comment;
+  final String venueId;
+  final String bookingId;
+  final int rating;
+  final String? text;
+  final String? replyText;
+  final DateTime? repliedAt;
+  final DateTime createdAt;
+  final String? guestName;
+  final DateTime? visitDate;
+  final List<String> tables;
+  final int? guests;
 
   const ReviewModel({
     required this.id,
-    required this.authorName,
-    this.avatarUrl,
+    required this.venueId,
+    required this.bookingId,
     required this.rating,
-    required this.date,
-    required this.comment,
+    this.text,
+    this.replyText,
+    this.repliedAt,
+    required this.createdAt,
+    this.guestName,
+    this.visitDate,
+    this.tables = const [],
+    this.guests,
   });
 
-  static List<ReviewModel> get mockReviews => const [
-        ReviewModel(
-          id: '1',
-          authorName: 'Aziz Karimov',
-          rating: 5.0,
-          date: '2 kun oldin',
-          comment:
-              'Ajoyib restoran! Ovqatlar juda mazali, xizmat ko\'rsatish yuqori darajada. Bron qilish juda oson bo\'ldi.',
-        ),
-        ReviewModel(
-          id: '2',
-          authorName: 'Madina U.',
-          rating: 4.8,
-          date: '1 hafta oldin',
-          comment:
-              'Muhit yoqimli, pasta va tiramisu ajoyib. Joyimiz vaqtida tayyor bo\'lib turgan edi.',
-        ),
-        ReviewModel(
-          id: '3',
-          authorName: 'Jasur Bek',
-          rating: 5.0,
-          date: '2 hafta oldin',
-          comment:
-              'Toshkentdagi eng sevimli joyimiz. Tavsiya qilaman!',
-        ),
-      ];
+  factory ReviewModel.fromJson(Map<String, dynamic> json) {
+    return ReviewModel(
+      id: json['id'] as String,
+      venueId: json['venue_id'] as String,
+      bookingId: json['booking_id'] as String,
+      rating: (json['rating'] as num).toInt(),
+      text: json['text'] as String?,
+      replyText: json['reply_text'] as String?,
+      repliedAt: json['replied_at'] != null ? DateTime.tryParse(json['replied_at'] as String) : null,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      guestName: json['guest_name'] as String?,
+      visitDate: json['visit_date'] != null ? DateTime.tryParse(json['visit_date'] as String) : null,
+      tables: (json['tables'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      guests: (json['guests'] as num?)?.toInt(),
+    );
+  }
+
+  String get authorName => (guestName == null || guestName!.trim().isEmpty) ? 'Mehmon' : guestName!;
 }

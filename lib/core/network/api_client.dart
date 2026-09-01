@@ -155,6 +155,9 @@ class StandardApiClient implements ApiClient {
       }
     }
 
+    final body = decoded is Map<String, dynamic> ? decoded : null;
+    final code = body?['code']?.toString();
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return decoded;
     } else if (response.statusCode == 401) {
@@ -162,15 +165,17 @@ class StandardApiClient implements ApiClient {
         await authLocalStorage!.clear();
       }
       final message = _extractErrorMessage(decoded) ?? 'Tizimga qaytadan kiring';
-      throw UnauthorizedException(message: message);
+      throw UnauthorizedException(message: message, code: code, body: body);
     } else if (response.statusCode == 422) {
       final message = _extractValidationErrorMessage(decoded) ?? 'Ma\'lumotlar to\'g\'ri kiritilmadi';
-      throw ServerException(message: message, statusCode: 422);
+      throw ServerException(message: message, statusCode: 422, code: code, body: body);
     } else {
       final message = _extractErrorMessage(decoded) ?? 'Server xatoligi (${response.statusCode})';
       throw ServerException(
         message: message,
         statusCode: response.statusCode,
+        code: code,
+        body: body,
       );
     }
   }

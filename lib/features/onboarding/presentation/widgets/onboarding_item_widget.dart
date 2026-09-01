@@ -31,7 +31,7 @@ class OnboardingItemWidget extends StatelessWidget {
             filterQuality: FilterQuality.high,
             errorBuilder: (context, error, stackTrace) {
               return Center(
-                child: Icon(
+            child: Icon(
                   Icons.phone_iphone_rounded,
                   size: 120.r,
                   color: AppColors.primaryLight.withValues(alpha: 0.3),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/network/api_result.dart';
+import '../../../../core/utils/uz_phone_formatter.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 class BecomePartnerScreen extends StatefulWidget {
   final ProfileRepository repository;
@@ -65,11 +68,15 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    final phone = uzPhoneToE164(_phoneController.text.trim());
+    if (phone == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Telefon raqamini to\'liq kiriting')),
+      );
+      return;
+    }
 
-    final phone = _phoneController.text.trim().isNotEmpty
-        ? '+998 ${_phoneController.text.trim()}'
-        : '+998 90 123-45-67';
+    setState(() => _isSubmitting = true);
 
     final result = await widget.repository.submitPartnerApplication(
       businessName: _businessNameController.text.trim(),
@@ -104,7 +111,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                       color: Color(0xFFD1FAE5),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check_circle_rounded, size: 36.r, color: AppColors.success),
+                    child: AppIcon(AppAssets.iconCheckboxCircleFill, size: 36.r, color: AppColors.success),
                   ),
                   Gap(16.h),
                   Text(
@@ -249,13 +256,13 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                               // Category Circle Chips Row (🍽️, 🎮, ✂️, ✨)
                               Row(
                                 children: [
-                                  _buildCircleCategoryIcon(Icons.restaurant_rounded),
+                                  _buildCircleCategoryIcon(AppAssets.iconRestaurant),
                                   Gap(10.w),
-                                  _buildCircleCategoryIcon(Icons.sports_esports_rounded),
+                                  _buildCircleCategoryIcon(AppAssets.iconGym),
                                   Gap(10.w),
-                                  _buildCircleCategoryIcon(Icons.content_cut_rounded),
+                                  _buildCircleCategoryIcon(AppAssets.iconBarber),
                                   Gap(10.w),
-                                  _buildCircleCategoryIcon(Icons.auto_awesome_rounded),
+                                  _buildCircleCategoryIcon(AppAssets.iconBeauty),
                                 ],
                               ),
                             ],
@@ -472,13 +479,17 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                                           keyboardType: TextInputType.phone,
                                           cursorColor: AppColors.primary,
                                           onTapOutside: (_) => _unfocus(),
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter.digitsOnly,
+                                            UzPhoneInputFormatter(),
+                                          ],
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 14.5.sp,
                                             fontWeight: FontWeight.w500,
                                             color: const Color(0xFF181A20),
                                           ),
                                           decoration: InputDecoration(
-                                            hintText: '90 123-45-67',
+                                            hintText: '(90) 123 45 67',
                                             hintStyle: GoogleFonts.plusJakartaSans(
                                               fontSize: 14.sp,
                                               color: const Color(0xFF8E8E93),
@@ -592,7 +603,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
     );
   }
 
-  Widget _buildCircleCategoryIcon(IconData icon) {
+  Widget _buildCircleCategoryIcon(String asset) {
     return Container(
       width: 38.r,
       height: 38.r,
@@ -601,8 +612,8 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
         shape: BoxShape.circle,
       ),
       child: Center(
-        child: Icon(
-          icon,
+        child: AppIcon(
+          asset,
           color: Colors.white,
           size: 18.r,
         ),

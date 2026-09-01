@@ -43,4 +43,29 @@ class ApiEndpoints {
   static const String waitlist = '$baseUrl/api/v1/waitlist';
   static String waitlistConfirm(String entryId) => '$baseUrl/api/v1/waitlist/$entryId/confirm';
   static String waitlistDelete(String entryId) => '$baseUrl/api/v1/waitlist/$entryId';
+
+  // Xostes (staff) — 01-kirish.md
+  static const String staffAuthTelegramStart = '$baseUrl/api/v1/staff/auth/telegram/start';
+  static String staffAuthTelegramStatus(String nonce) => '$baseUrl/api/v1/staff/auth/telegram/status/$nonce';
+  static const String staffVenues = '$baseUrl/api/v1/staff/venues';
+  static const String staffMe = '$baseUrl/api/v1/staff/me';
+
+  // Xostes — Bugun, bron detali, QR (02-bugun-va-qr.md)
+  static const String staffBookings = '$baseUrl/api/v1/staff/bookings';
+  static String staffBookingById(String id) => '$baseUrl/api/v1/staff/bookings/$id';
+  static String staffBookingArrive(String id) => '$baseUrl/api/v1/staff/bookings/$id/arrive';
+  static String staffBookingLate(String id) => '$baseUrl/api/v1/staff/bookings/$id/late';
+  static String staffBookingNoShow(String id) => '$baseUrl/api/v1/staff/bookings/$id/no-show';
+  static String staffBookingCancel(String id) => '$baseUrl/api/v1/staff/bookings/$id/cancel';
+  static String staffBookingTables(String id) => '$baseUrl/api/v1/staff/bookings/$id/tables';
+  static String staffBookingTime(String id) => '$baseUrl/api/v1/staff/bookings/$id/time';
+  static const String staffBookingScan = '$baseUrl/api/v1/staff/bookings/scan';
+  static const String staffZal = '$baseUrl/api/v1/staff/zal';
+  static const String staffZalAvailability = '$baseUrl/api/v1/staff/zal/availability';
+
+  // Xostes — Navbat (03-navbat.md)
+  static const String staffWaitlist = '$baseUrl/api/v1/staff/waitlist';
+  static String staffWaitlistCall(String id) => '$baseUrl/api/v1/staff/waitlist/$id/call';
+  static String staffWaitlistSeat(String id) => '$baseUrl/api/v1/staff/waitlist/$id/seat';
+  static String staffWaitlistDelete(String id) => '$baseUrl/api/v1/staff/waitlist/$id';
 }

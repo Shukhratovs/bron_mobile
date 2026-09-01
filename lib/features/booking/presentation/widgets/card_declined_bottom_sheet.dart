@@ -8,17 +8,20 @@ import '../../../../core/widgets/app_button.dart';
 class CardDeclinedBottomSheet extends StatelessWidget {
   final VoidCallback? onSelectAnotherCard;
   final VoidCallback? onRetry;
+  final String message;
 
   const CardDeclinedBottomSheet({
     super.key,
     this.onSelectAnotherCard,
     this.onRetry,
+    this.message = 'Blok summasi tasdiqlanmadi. Kartada yetarli mablag\' borligini tekshiring yoki boshqa karta tanlang.',
   });
 
   static Future<void> show(
     BuildContext context, {
     VoidCallback? onSelectAnotherCard,
     VoidCallback? onRetry,
+    String? message,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -26,6 +29,8 @@ class CardDeclinedBottomSheet extends StatelessWidget {
       builder: (context) => CardDeclinedBottomSheet(
         onSelectAnotherCard: onSelectAnotherCard,
         onRetry: onRetry,
+        message: message ??
+            'Blok summasi tasdiqlanmadi. Kartada yetarli mablag\' borligini tekshiring yoki boshqa karta tanlang.',
       ),
     );
   }
@@ -69,7 +74,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
             ),
             Gap(8.h),
             Text(
-              'Blok summasi tasdiqlanmadi. Kartada 150 000 so\'m borligini tekshiring yoki boshqa karta tanlang.',
+              message,
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13.sp,
@@ -86,7 +91,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFFDE68A)),
               ),
               child: Text(
-                'Bron hali saqlanadi — 10:00 daqiqa siz uchun ushlab turiladi.',
+                'Karta raqami hech qachon saqlanmaydi.',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w600,

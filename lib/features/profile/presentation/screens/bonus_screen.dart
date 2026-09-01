@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 enum SubscriptionPlan { monthly, yearly }
 
@@ -566,7 +567,7 @@ class _BonusScreenState extends State<BonusScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF181A20)),
+          icon: const AppIcon(AppAssets.iconArrowLeftSLine, color: Color(0xFF181A20)),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(

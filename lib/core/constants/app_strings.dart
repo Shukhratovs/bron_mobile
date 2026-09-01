@@ -310,6 +310,18 @@ class AppStrings {
       'retry': 'Qayta urinish',
       'version': 'Versiya',
       'select_language': 'Tilni tanlash',
+
+      // Home
+      'city_tashkent': 'Toshkent',
+      'search_placeholder': 'Restoran, taom yoki joy',
+      'today': 'Bugun',
+      'tomorrow': 'Ertaga',
+      'persons_count': 'Kishilar soni',
+      'near_me': 'Yaqin atrofda',
+      'view_all': 'Barchasi',
+      'popular_places': 'Mashhur joylar',
+      'recommended': 'Tavsiya etiladi',
+      'no_data': 'Ma\'lumot topilmadi',
     },
 
     // --- РУССКИЙ ---
@@ -429,6 +441,18 @@ class AppStrings {
       'retry': 'Повторить',
       'version': 'Версия',
       'select_language': 'Выбор языка',
+
+      // Home
+      'city_tashkent': 'Ташкент',
+      'search_placeholder': 'Ресторан, блюдо или место',
+      'today': 'Сегодня',
+      'tomorrow': 'Завтра',
+      'persons_count': 'Количество гостей',
+      'near_me': 'Рядом',
+      'view_all': 'Все',
+      'popular_places': 'Популярные места',
+      'recommended': 'Рекомендуем',
+      'no_data': 'Данные не найдены',
     },
 
     // --- ENGLISH ---
@@ -548,6 +572,18 @@ class AppStrings {
       'retry': 'Retry',
       'version': 'Version',
       'select_language': 'Select Language',
+
+      // Home
+      'city_tashkent': 'Tashkent',
+      'search_placeholder': 'Restaurant, dish or place',
+      'today': 'Today',
+      'tomorrow': 'Tomorrow',
+      'persons_count': 'Number of guests',
+      'near_me': 'Nearby',
+      'view_all': 'View all',
+      'popular_places': 'Popular places',
+      'recommended': 'Recommended',
+      'no_data': 'No data found',
     },
   };
 }

@@ -8,6 +8,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_result.dart';
 import '../../domain/entities/user_profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfileEntity user;
@@ -133,7 +134,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+            icon: const AppIcon(AppAssets.iconArrowLeftLine, color: Color(0xFF181A20)),
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(

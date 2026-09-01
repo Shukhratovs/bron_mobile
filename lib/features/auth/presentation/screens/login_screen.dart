@@ -4,9 +4,13 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/telegram_config.dart';
 import '../../../../core/widgets/bron_logo.dart';
 import '../../data/models/telegram_auth_request_model.dart';
 import '../../domain/repositories/auth_repository.dart';
+import 'telegram_webview_login_screen.dart';
+import '../../../../core/widgets/app_icon.dart';
+import '../../../../core/constants/app_assets.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthRepository authRepository;
@@ -23,40 +27,48 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController(text: 'Aziz Karimov');
   bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
 
   void _unfocus() {
     FocusScope.of(context).unfocus();
   }
 
+  void _showNotConfiguredNotice() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Telegram kirish hali sozlanmagan'),
+        content: const Text(
+          'Backend har bir kirishda Telegramning o\'zi hisoblagan raqamli '
+          'imzoni (`hash`) talab qiladi — uni qo\'lda yoki soxta yuborib '
+          'bo\'lmaydi (xavfsizlik uchun ataylab shunday). Haqiqiy kirish '
+          'faqat Telegram bot username sozlangach ishlaydi '
+          '(core/constants/telegram_config.dart).',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tushunarli')),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleTelegramLogin() async {
     _unfocus();
-    setState(() => _isLoading = true);
 
-    // Telegram OAuth / WebApp simulation or bot data
-    final req = TelegramAuthRequestModel(
-      id: DateTime.now().millisecondsSinceEpoch % 1000000000,
-      firstName: _nameController.text.trim().split(' ').first,
-      lastName: _nameController.text.trim().split(' ').length > 1
-          ? _nameController.text.trim().split(' ').sublist(1).join(' ')
-          : '',
-      phone: _phoneController.text.trim().isNotEmpty
-          ? _phoneController.text.trim()
-          : '+998901234567',
-      username: 'aziz_karimov',
-      authDate: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      hash: 'telegram_auth_hash',
+    if (!TelegramConfig.isConfigured) {
+      _showNotConfiguredNotice();
+      return;
+    }
+
+    // Haqiqiy Telegram Login Widget (mijoz/00-kirish-va-profil.md §1-2).
+    final widgetResult = await Navigator.push<TelegramAuthRequestModel>(
+      context,
+      MaterialPageRoute(builder: (context) => const TelegramWebviewLoginScreen()),
     );
+    if (widgetResult == null || !mounted) return;
+    final req = widgetResult;
 
+    setState(() => _isLoading = true);
     final result = await widget.authRepository.loginWithTelegram(req);
 
     if (!mounted) return;
@@ -99,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+            icon: const AppIcon(AppAssets.iconArrowLeftLine, color: Color(0xFF181A20)),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
@@ -149,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _isLoading ? null : _handleTelegramLogin,
                     icon: _isLoading
                         ? const SizedBox.shrink()
-                        : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                        : const AppIcon(AppAssets.iconSendPlaneFill, color: Colors.white, size: 20),
                     label: _isLoading
                         ? SizedBox(
                             width: 22.r,
@@ -178,142 +190,37 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Gap(20.h),
 
-                // Divider with "yoki"
-                Row(
-                  children: [
-                    const Expanded(child: Divider(color: Color(0xFFECEFF3))),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14.w),
-                      child: Text(
-                        'yoki telefon orqali',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.sp,
-                          color: const Color(0xFF8E8E93),
+                if (!TelegramConfig.isConfigured) ...[
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(14.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AppIcon(AppAssets.iconInformationLine, color: Color(0xFFB45309), size: 20),
+                      Gap(10.w),
+                      Expanded(
+                        child: Text(
+                          'Telegram bot hali sozlanmagan — kirish ishlamaydi. Backend '
+                          'har doim Telegramning haqiqiy raqamli imzosini (`hash`) '
+                          'talab qiladi, uni soxta yuborib bo\'lmaydi.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5.sp,
+                            color: const Color(0xFF92400E),
+                            height: 1.4,
+                          ),
                         ),
                       ),
-                    ),
-                    const Expanded(child: Divider(color: Color(0xFFECEFF3))),
-                  ],
+                    ],
+                  ),
                 ),
                 Gap(20.h),
-
-                // Name Field
-                Text(
-                  'Ism va familiya',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF181A20),
-                  ),
-                ),
-                Gap(6.h),
-                TextField(
-                  controller: _nameController,
-                  cursorColor: AppColors.primary,
-                  onTapOutside: (_) => _unfocus(),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF181A20),
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Aziz Karimov',
-                    hintStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 14.5.sp,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF8E8E93),
-                    ),
-                    prefixIcon: const Icon(Icons.person_outline_rounded, color: Color(0xFF8E8E93)),
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: Color(0xFFECEFF3)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: Color(0xFFECEFF3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                    ),
-                  ),
-                ),
-                Gap(16.h),
-
-                // Phone Field
-                Text(
-                  'Telefon raqam',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF181A20),
-                  ),
-                ),
-                Gap(6.h),
-                TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  cursorColor: AppColors.primary,
-                  onTapOutside: (_) => _unfocus(),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF181A20),
-                  ),
-                  decoration: InputDecoration(
-                    hintText: '+998 90 123-45-67',
-                    hintStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 14.5.sp,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF8E8E93),
-                    ),
-                    prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF8E8E93)),
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: Color(0xFFECEFF3)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: Color(0xFFECEFF3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                    ),
-                  ),
-                ),
-                Gap(24.h),
-
-                // Primary Continue Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52.h,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleTelegramLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Davom etish',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                Gap(32.h),
+                ],
 
                 // Terms & Privacy Note
                 Center(

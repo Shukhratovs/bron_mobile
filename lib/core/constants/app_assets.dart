@@ -41,6 +41,73 @@ abstract class AppAssets {
   static const String iconGym = '$_mainIconsPath/gym.svg';
 
   // ==========================================
+  // Umumiy SVG ikonkalar (Figma "Bron" faylidan,
+  // Remix Icon kutubxonasi asosida — dizayn shu tilni ishlatadi)
+  // ==========================================
+  static const String iconStarFill = '$_iconsPath/star-fill.svg';
+  static const String iconStarLine = '$_iconsPath/star-line.svg';
+  static const String iconArrowLeftSLine = '$_iconsPath/arrow-left-s-line.svg';
+  static const String iconArrowRightSLine = '$_iconsPath/arrow-right-s-line.svg';
+  static const String iconArrowLeftLine = '$_iconsPath/arrow-left-line.svg';
+  static const String iconArrowDownSLine = '$_iconsPath/arrow-down-s-line.svg';
+  static const String iconArrowUpSLine = '$_iconsPath/arrow-up-s-line.svg';
+  static const String iconRestaurantLine = '$_iconsPath/restaurant-line.svg';
+  static const String iconUser3Line = '$_iconsPath/user-3-line.svg';
+  static const String iconUser3Fill = '$_iconsPath/user-3-fill.svg';
+  static const String iconSearch2Line = '$_iconsPath/search-2-line.svg';
+  static const String iconNotification3Line = '$_iconsPath/notification-3-line.svg';
+  static const String iconErrorWarningLine = '$_iconsPath/error-warning-line.svg';
+  static const String iconBankCardLine = '$_iconsPath/bank-card-line.svg';
+  static const String iconCloseLine = '$_iconsPath/close-line.svg';
+  static const String iconStore2Fill = '$_iconsPath/store-2-fill.svg';
+  static const String iconStore2Line = '$_iconsPath/store-2-line.svg';
+  static const String iconMapPinLine = '$_iconsPath/map-pin-line.svg';
+  static const String iconMapPinFill = '$_iconsPath/map-pin-fill.svg';
+  static const String iconEqualizer2Line = '$_iconsPath/equalizer-2-line.svg';
+  static const String iconCalendarEventLine = '$_iconsPath/calendar-event-line.svg';
+  static const String iconCalendarLine = '$_iconsPath/calendar-line.svg';
+  static const String iconCalendarCheckFill = '$_iconsPath/calendar-check-fill.svg';
+  static const String iconCalendarCheckLine = '$_iconsPath/calendar-check-line.svg';
+  static const String iconCalendarCloseFill = '$_iconsPath/calendar-close-fill.svg';
+  static const String iconCalendarCloseLine = '$_iconsPath/calendar-close-line.svg';
+  static const String iconTableLine = '$_iconsPath/table-line.svg';
+  static const String iconTableFill = '$_iconsPath/table-fill.svg';
+  static const String iconGamepadLine = '$_iconsPath/gamepad-line.svg';
+  static const String iconShareForwardLine = '$_iconsPath/share-forward-line.svg';
+  static const String iconLogoutBoxRLine = '$_iconsPath/logout-box-r-line.svg';
+  static const String iconInformationLine = '$_iconsPath/information-line.svg';
+  static const String iconImageLine = '$_iconsPath/image-line.svg';
+  static const String iconGroupLine = '$_iconsPath/group-line.svg';
+  static const String iconGroupFill = '$_iconsPath/group-fill.svg';
+  static const String iconHeartLine = '$_iconsPath/heart-line.svg';
+  static const String iconHeartFill = '$_iconsPath/heart-fill.svg';
+  static const String iconScissorsLine = '$_iconsPath/scissors-line.svg';
+  static const String iconCheckLine = '$_iconsPath/check-line.svg';
+  static const String iconBuilding4Line = '$_iconsPath/building-4-line.svg';
+  static const String iconAddCircleLine = '$_iconsPath/add-circle-line.svg';
+  static const String iconVerifiedBadgeLine = '$_iconsPath/verified-badge-line.svg';
+  static const String iconTranslate2 = '$_iconsPath/translate-2.svg';
+  static const String iconShieldCheckLine = '$_iconsPath/shield-check-line.svg';
+  static const String iconSendPlaneFill = '$_iconsPath/send-plane-fill.svg';
+  static const String iconTimeLine = '$_iconsPath/time-line.svg';
+  static const String iconIndeterminateCircleLine = '$_iconsPath/indeterminate-circle-line.svg';
+  static const String iconRadioButtonLine = '$_iconsPath/radio-button-line.svg';
+  static const String iconRadioButtonFill = '$_iconsPath/radio-button-fill.svg';
+  static const String iconQrScan2Line = '$_iconsPath/qr-scan-2-line.svg';
+  static const String iconSmartphoneLine = '$_iconsPath/smartphone-line.svg';
+  static const String iconUserSearchLine = '$_iconsPath/user-search-line.svg';
+  static const String iconWallet3Line = '$_iconsPath/wallet-3-line.svg';
+  static const String iconMap2Line = '$_iconsPath/map-2-line.svg';
+  static const String iconLockLine = '$_iconsPath/lock-line.svg';
+  static const String iconFireLine = '$_iconsPath/fire-line.svg';
+  static const String iconKeyboardLine = '$_iconsPath/keyboard-line.svg';
+  static const String iconQuestionLine = '$_iconsPath/question-line.svg';
+  static const String iconSparklingLine = '$_iconsPath/sparkling-line.svg';
+  static const String iconEditLine = '$_iconsPath/edit-line.svg';
+  static const String iconCheckboxCircleFill = '$_iconsPath/checkbox-circle-fill.svg';
+  static const String iconArrowRightLine = '$_iconsPath/arrow-right-line.svg';
+
+  // ==========================================
   // BANNER & PROFILE IMAGES (PNG)
   // ==========================================
   static const String bonusBack = '$_imagesPath/bonus_back.png';

@@ -1,32 +1,74 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/network/api_result.dart';
+import '../../../../core/network/app_session.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_button.dart';
-import '../../../home/data/models/venue_model.dart';
+import '../../../bookings/data/datasources/booking_remote_data_source.dart';
+import '../../../bookings/data/models/booking_qr_model.dart';
+import '../../../bookings/data/repositories/booking_repository_impl.dart';
+import '../../../bookings/domain/entities/booking_entity.dart';
+import '../../../bookings/domain/repositories/booking_repository.dart';
 import '../../../main/presentation/screens/main_navigation_screen.dart';
 
-class BookingConfirmedScreen extends StatelessWidget {
-  final VenueModel venue;
-  final String date;
-  final String time;
-  final int guestCount;
-  final String tableZone;
-  final String bookingId;
+class BookingConfirmedScreen extends StatefulWidget {
+  final BookingEntity booking;
+  final String venueName;
+  final String? venueAddress;
+  final BookingRepository? repository;
 
   const BookingConfirmedScreen({
     super.key,
-    required this.venue,
-    required this.date,
-    required this.time,
-    required this.guestCount,
-    required this.tableZone,
-    this.bookingId = 'BRN-4831',
+    required this.booking,
+    required this.venueName,
+    this.venueAddress,
+    this.repository,
   });
 
   @override
+  State<BookingConfirmedScreen> createState() => _BookingConfirmedScreenState();
+}
+
+class _BookingConfirmedScreenState extends State<BookingConfirmedScreen> {
+  late final BookingRepository _repository;
+  BookingQrModel? _qr;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.repository ??
+        BookingRepositoryImpl(
+          remoteDataSource: BookingRemoteDataSourceImpl(apiClient: AppSession.apiClient),
+        );
+    _loadQr();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadQr() async {
+    final result = await _repository.getBookingQr(widget.booking.id);
+    if (!mounted) return;
+    if (result case Success(:final data)) {
+      setState(() => _qr = data);
+      _refreshTimer?.cancel();
+      _refreshTimer = Timer(Duration(seconds: data.expiresIn), _loadQr);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final booking = widget.booking;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -98,14 +140,21 @@ class BookingConfirmedScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.qr_code_2_rounded,
-                      size: 160.r,
-                      color: Colors.black,
-                    ),
+                    if (_qr == null)
+                      SizedBox(
+                        width: 160.r,
+                        height: 160.r,
+                        child: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      )
+                    else
+                      QrImageView(
+                        data: _qr!.token,
+                        size: 160.r,
+                        backgroundColor: Colors.white,
+                      ),
                     Gap(8.h),
                     Text(
-                      bookingId,
+                      booking.code,
                       style: GoogleFonts.unbounded(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
@@ -145,13 +194,20 @@ class BookingConfirmedScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildInfoRow('Restoran', venue.name),
+                    _buildInfoRow('Restoran', widget.venueName),
                     const Divider(color: Color(0xFFF0F0F0), height: 20),
-                    _buildInfoRow('Sana va vaqt', '$date • $time'),
+                    _buildInfoRow(
+                      'Sana va vaqt',
+                      '${formatDateLong(booking.startsAt.toLocal())} • ${formatTime(booking.startsAt.toLocal())}',
+                    ),
                     const Divider(color: Color(0xFFF0F0F0), height: 20),
-                    _buildInfoRow('Mehmonlar', '$guestCount kishi'),
+                    _buildInfoRow('Mehmonlar', '${booking.guests} kishi'),
                     const Divider(color: Color(0xFFF0F0F0), height: 20),
-                    _buildInfoRow('Stol', tableZone),
+                    _buildInfoRow('Stol', booking.tableLabel.isEmpty ? '—' : booking.tableLabel),
+                    if (booking.depositAmount != null) ...[
+                      const Divider(color: Color(0xFFF0F0F0), height: 20),
+                      _buildInfoRow('Depozit', formatSom(booking.depositAmount!)),
+                    ],
                   ],
                 ),
               ),
@@ -175,13 +231,20 @@ class BookingConfirmedScreen extends StatelessWidget {
                   _buildActionButton(
                     icon: Icons.map_outlined,
                     label: 'Xaritada',
-                    onTap: () {},
+                    onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
                   ),
                   Gap(10.w),
                   _buildActionButton(
                     icon: Icons.share_outlined,
                     label: 'Ulashish',
-                    onTap: () {},
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(
+                        text: '${widget.venueName} • ${booking.code} • ${formatDateLong(booking.startsAt.toLocal())} ${formatTime(booking.startsAt.toLocal())}',
+                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Havola nusxalandi')),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -194,7 +257,7 @@ class BookingConfirmedScreen extends StatelessWidget {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MainNavigationScreen(initialIndex: 0),
+                      builder: (context) => const MainNavigationScreen(initialIndex: 2),
                     ),
                     (route) => false,
                   );

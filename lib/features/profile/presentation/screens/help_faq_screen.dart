@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_icon.dart';
+import '../../../../core/constants/app_assets.dart';
 
 class HelpFaqScreen extends StatefulWidget {
   const HelpFaqScreen({super.key});
@@ -56,7 +58,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF181A20)),
+          icon: const AppIcon(AppAssets.iconArrowLeftLine, color: Color(0xFF181A20)),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(

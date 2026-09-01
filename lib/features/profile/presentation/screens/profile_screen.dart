@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
@@ -6,13 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
-import '../../../../core/network/auth_local_storage.dart';
+import '../../../../core/network/app_session.dart';
 import '../../../auth/data/datasources/auth_remote_data_source.dart';
 import '../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../staff/auth/presentation/screens/staff_login_screen.dart';
+import '../../../staff/core/staff_session.dart';
 import '../../data/datasources/profile_remote_data_source.dart';
 import '../../data/repositories/profile_repository_impl.dart';
 import '../../domain/entities/user_profile_entity.dart';
@@ -26,6 +26,7 @@ import 'become_partner_screen.dart';
 import 'bonus_screen.dart';
 import 'edit_profile_screen.dart';
 import 'favorites_screen.dart';
+import '../../../../core/widgets/shimmer_skeleton.dart';
 import 'help_faq_screen.dart';
 import 'my_cards_screen.dart';
 import 'notifications_screen.dart';
@@ -54,17 +55,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final apiClient = StandardApiClient();
     _repository = widget.repository ??
         ProfileRepositoryImpl(
           remoteDataSource: ProfileRemoteDataSourceImpl(
-            apiClient: apiClient,
+            apiClient: AppSession.apiClient,
           ),
         );
     _authRepository = widget.authRepository ??
         AuthRepositoryImpl(
-          remoteDataSource: AuthRemoteDataSourceImpl(apiClient: apiClient),
-          authLocalStorage: DummyAuthLocalStorage(),
+          remoteDataSource: AuthRemoteDataSourceImpl(apiClient: AppSession.apiClient),
+          authLocalStorage: AppSession.authLocalStorage,
         );
     _loadUserProfile();
     _loadAppVersion();
@@ -84,6 +84,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
+    if (!AppSession.authLocalStorage.isLoggedIn) {
+      setState(() {
+        _user = null;
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
     final result = await _repository.getUserProfile();
     if (!mounted) return;
@@ -170,6 +178,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _onStaffModeTap() async {
+    // Dev qulayligi uchun: Xostes ilovasini alohida qurmasdan
+    // (`flutter run -t lib/main_staff.dart`), shu jarayon ichidan
+    // sinash. Xostesning o'z sessiyasi (`StaffSession`) mijozdan
+    // butunlay mustaqil — token/muassasa alohida saqlanadi.
+    await StaffSession.init();
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const StaffLoginScreen(),
+      ),
+    );
+  }
+
   void _onPartnerTap() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -183,6 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context,
       onConfirm: () async {
         await _repository.logout();
+        await AppSession.authLocalStorage.clear();
         if (!mounted) return;
         setState(() => _user = null);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           backgroundColor: AppColors.backgroundLight,
           body: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              ? Padding(padding: EdgeInsets.all(16.w), child: const ListRowSkeletonGroup(count: 5, leadingIsCircle: true))
               : Column(
                   children: [
                     // 1. Top Header with white background & rounded bottom border
@@ -315,8 +338,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ProfileMenuItemWidget(
                                     title: AppStrings.becomePartner,
                                     iconData: Icons.verified_outlined,
-                                    showDivider: false,
                                     onTap: _onPartnerTap,
+                                  ),
+                                  ProfileMenuItemWidget(
+                                    title: 'Xostes rejimi',
+                                    subtitle: 'xodimlar uchun (dev)',
+                                    iconData: Icons.badge_outlined,
+                                    showDivider: false,
+                                    onTap: _onStaffModeTap,
                                   ),
                                 ],
                               ),
@@ -363,23 +392,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
-}
-
-class DummyAuthLocalStorage implements AuthLocalStorage {
-  @override
-  ValueListenable<bool> get authStateListenable => ValueNotifier(false);
-  @override
-  Future<void> clear() async {}
-  @override
-  Future<String?> getAccessToken() async => null;
-  @override
-  Future<String?> getTokenType() async => null;
-  @override
-  Future<Map<String, dynamic>?> getUser() async => null;
-  @override
-  bool get isLoggedIn => false;
-  @override
-  Future<void> saveAuthToken({required String accessToken, required String tokenType, required int expiresIn}) async {}
-  @override
-  Future<void> saveUser(Map<String, dynamic> userMap) async {}
 }

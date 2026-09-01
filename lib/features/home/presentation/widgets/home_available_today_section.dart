@@ -4,13 +4,13 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../data/models/venue_model.dart';
+import '../../../venue/domain/entities/venue_entity.dart';
 import 'time_slot_chip.dart';
 
 class HomeAvailableTodaySection extends StatelessWidget {
-  final List<VenueModel> venues;
-  final ValueChanged<VenueModel>? onVenueTap;
-  final Function(VenueModel venue, String time)? onTimeSlotTap;
+  final List<VenueEntity> venues;
+  final ValueChanged<VenueEntity>? onVenueTap;
+  final Function(VenueEntity venue, String time)? onTimeSlotTap;
   final VoidCallback? onViewAllTap;
 
   const HomeAvailableTodaySection({
@@ -23,6 +23,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (venues.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,7 +33,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Bugun 19:30 ga borish',
+                'Bugun bo\'sh joylar',
                 style: GoogleFonts.unbounded(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w700,
@@ -104,22 +105,33 @@ class HomeAvailableTodaySection extends StatelessWidget {
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(16.r),
                         ),
-                        child: Image.asset(
-                          venue.imagePath,
-                          height: 86.h,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.high,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            height: 86.h,
-                            color: const Color(0xFFF3F4F6),
-                            child: Icon(
-                              Icons.restaurant_rounded,
-                              size: 28.r,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                        ),
+                        child: venue.photoUrl == null || venue.photoUrl!.isEmpty
+                            ? Container(
+                                height: 86.h,
+                                width: double.infinity,
+                                color: const Color(0xFFF3F4F6),
+                                child: Icon(
+                                  Icons.restaurant_rounded,
+                                  size: 28.r,
+                                  color: AppColors.textMuted,
+                                ),
+                              )
+                            : Image.network(
+                                venue.photoUrl!,
+                                height: 86.h,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                filterQuality: FilterQuality.high,
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  height: 86.h,
+                                  color: const Color(0xFFF3F4F6),
+                                  child: Icon(
+                                    Icons.restaurant_rounded,
+                                    size: 28.r,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
                       ),
 
                       // Venue Info
@@ -147,29 +159,34 @@ class HomeAvailableTodaySection extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star_rounded,
-                                      color: Colors.amber,
-                                      size: 15.r,
-                                    ),
-                                    Gap(2.w),
-                                    Text(
-                                      venue.rating.toString(),
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.textPrimary,
+                                if (venue.rating != null)
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.star_rounded,
+                                        color: Colors.amber,
+                                        size: 15.r,
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                      Gap(2.w),
+                                      Text(
+                                        venue.rating!.toStringAsFixed(1),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                               ],
                             ),
                             Gap(4.h),
                             Text(
-                              '${venue.address.split(' ').first} • ${venue.distance}',
+                              [
+                                if (venue.district != null) venue.district!,
+                                if (venue.distanceKm != null)
+                                  '${venue.distanceKm!.toStringAsFixed(1)} km',
+                              ].join(' • '),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.plusJakartaSans(
@@ -183,7 +200,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children: venue.availableTimeSlots
+                                children: venue.freeSlots
                                     .take(3)
                                     .map(
                                       (time) => Padding(
