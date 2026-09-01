@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
@@ -116,6 +119,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: SafeArea(
@@ -129,7 +134,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Bronlarim',
+                  AppStrings.myBookings,
                   style: GoogleFonts.plusJakartaSans(fontSize: 22.sp, fontWeight: FontWeight.w800, color: const Color(0xFF181A20)),
                 ),
                 Gap(16.h),
@@ -141,8 +146,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(14.r)),
                   child: Row(
                     children: [
-                      Expanded(child: _tabButton('Faol', 0)),
-                      Expanded(child: _tabButton('O\'tgan', 1)),
+                      Expanded(child: _tabButton(AppStrings.activeTab, 0)),
+                      Expanded(child: _tabButton(AppStrings.historyTab, 1)),
                     ],
                   ),
                 ),
@@ -157,7 +162,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       padding: EdgeInsets.symmetric(vertical: 40.h),
                       child: Center(
                         child: Text(
-                          _selectedTabIndex == 0 ? 'Faol broningiz yo\'q' : 'O\'tgan bronlar yo\'q',
+                          AppStrings.noBookingsFound,
                           style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, color: const Color(0xFF6B7280)),
                         ),
                       ),
@@ -172,6 +177,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../bookings/presentation/screens/bookings_screen.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 import '../../../map/presentation/screens/map_screen.dart';
@@ -43,17 +45,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: Colors.white,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabSelected,
-      ),
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
+        return Scaffold(
+          extendBody: true,
+          backgroundColor: Colors.white,
+          body: IndexedStack(
+            index: _currentIndex,
+            children: _screens,
+          ),
+          bottomNavigationBar: CustomBottomNavBar(
+            currentIndex: _currentIndex,
+            onTap: _onTabSelected,
+          ),
+        );
+      },
     );
   }
 }

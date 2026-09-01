@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/app_icon.dart';
 import '../../domain/entities/user_profile_entity.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
@@ -31,8 +32,8 @@ class ProfileHeaderWidget extends StatelessWidget {
               color: AppColors.primarySoft,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.person_outline_rounded,
+            child: AppIcon(
+              AppAssets.iconUser3Line,
               size: 30.r,
               color: AppColors.primary,
             ),
@@ -92,8 +93,8 @@ class ProfileHeaderWidget extends StatelessWidget {
                   filterQuality: FilterQuality.high,
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: AppColors.primarySoft,
-                    child: Icon(
-                      Icons.person_rounded,
+                    child: AppIcon(
+                      AppAssets.iconUser3Fill,
                       size: 32.r,
                       color: AppColors.primary,
                     ),
@@ -157,14 +158,14 @@ class ProfileHeaderWidget extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.edit_outlined,
+                AppIcon(
+                  AppAssets.iconEditLine,
                   size: 18.r,
                   color: AppColors.primary,
                 ),
                 Gap(6.w),
                 Text(
-                  'Tahrirlash',
+                  AppStrings.editProfile,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,

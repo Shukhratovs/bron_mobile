@@ -6,6 +6,7 @@ loyihasini davom ettirish. Boshlashdan oldin shu faylni to'liq o'qing.
 
 ## 0. Loyiha nima
 
+
 `bron_mobile` — Flutter loyihasi, **ikkita mustaqil ilova** bitta repoda:
 
 - **Mijoz** (mehmon) — `lib/main.dart`, `flutter run -t lib/main.dart`

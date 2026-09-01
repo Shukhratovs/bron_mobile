@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../domain/entities/user_profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -124,6 +126,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final avatarPath = widget.user.avatarUrl ?? AppAssets.me;
 
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => FocusScope.of(context).unfocus(),
@@ -138,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
-            'Profilni tahrirlash',
+            AppStrings.editProfile,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 18.sp,
               fontWeight: FontWeight.w700,
@@ -216,7 +220,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               );
                             },
                             child: Text(
-                              "Rasmni o'zgartirish",
+                              AppStrings.changePhoto,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14.5.sp,
                                 fontWeight: FontWeight.w600,
@@ -230,7 +234,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Gap(24.h),
 
                     // 2. Ism
-                    _buildFieldLabel('Ism'),
+                    _buildFieldLabel(AppStrings.firstName),
                     Gap(6.h),
                     _buildTextInput(
                       controller: _firstNameController,
@@ -240,7 +244,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Gap(16.h),
 
                     // 3. Familiya
-                    _buildFieldLabel('Familiya'),
+                    _buildFieldLabel(AppStrings.lastName),
                     Gap(6.h),
                     _buildTextInput(
                       controller: _lastNameController,
@@ -250,7 +254,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Gap(16.h),
 
                     // 4. Telefon (Disabled / Protected)
-                    _buildFieldLabel('Telefon'),
+                    _buildFieldLabel(AppStrings.phoneNumber),
                     Gap(6.h),
                     Container(
                       height: 52.h,
@@ -328,7 +332,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Gap(16.h),
 
                     // 5. Tug'ilgan kun
-                    _buildFieldLabel("Tug'ilgan kun"),
+                    _buildFieldLabel(AppStrings.birthDate),
                     Gap(6.h),
                     GestureDetector(
                       onTap: _selectBirthDate,
@@ -408,7 +412,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         )
                       : Text(
-                          'Saqlash',
+                          AppStrings.saveChanges,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w700,
@@ -422,6 +426,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ),
     ),
+    );
+      },
     );
   }
 

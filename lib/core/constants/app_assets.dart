@@ -110,6 +110,7 @@ abstract class AppAssets {
   // ==========================================
   // BANNER & PROFILE IMAGES (PNG)
   // ==========================================
+  static const String bannerPromo = '$_imagesPath/img.png';
   static const String bonusBack = '$_imagesPath/bonus_back.png';
   static const String bonusBackBig = '$_imagesPath/bonus_back_big.png';
   static const String partnerBack = '$_imagesPath/partner_back.png';

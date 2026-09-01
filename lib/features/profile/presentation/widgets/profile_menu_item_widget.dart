@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 class ProfileMenuItemWidget extends StatelessWidget {
   final String title;
@@ -86,10 +88,10 @@ class ProfileMenuItemWidget extends StatelessWidget {
                 if (trailing != null)
                   trailing!
                 else if (!isDestructive)
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    size: 20,
-                    color: Color(0xFFC7C7CC),
+                  AppIcon(
+                    AppAssets.iconArrowRightSLine,
+                    size: 20.r,
+                    color: const Color(0xFFC7C7CC),
                   ),
               ],
             ),

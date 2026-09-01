@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/utils/uz_phone_formatter.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -171,6 +174,8 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _unfocus,
@@ -546,7 +551,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                                 ),
                               )
                             : Text(
-                                'Ariza yuborish',
+                                AppStrings.submitApplication,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.w700,
@@ -572,6 +577,8 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 

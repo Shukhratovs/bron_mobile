@@ -3,8 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 
 class CollectionItem {
   final String id;
@@ -33,20 +31,20 @@ class HomeCollectionsSection extends StatelessWidget {
   static List<CollectionItem> get mockCollections => const [
         CollectionItem(
           id: '1',
-          title: 'Romantik kecha',
-          placesCount: '18 ta joy',
+          title: 'Osh joylari',
+          placesCount: '12 ta joy',
           imagePath: AppAssets.onboardingSecond,
         ),
         CollectionItem(
           id: '2',
-          title: 'Do\'stlar bilan',
-          placesCount: '24 ta joy',
+          title: 'Terasali',
+          placesCount: '18 ta joy',
           imagePath: AppAssets.onboardingThird,
         ),
         CollectionItem(
           id: '3',
-          title: 'Oila davrasida',
-          placesCount: '15 ta joy',
+          title: 'Yangi ochilgan',
+          placesCount: '6 ta joy',
           imagePath: AppAssets.onboardingFourth,
         ),
       ];
@@ -61,96 +59,73 @@ class HomeCollectionsSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Text(
-                'To\'plamlar',
-                style: GoogleFonts.unbounded(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
+            Text(
+              'To\'plamlar',
+              style: GoogleFonts.unbounded(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF161616),
               ),
             ),
             GestureDetector(
               onTap: onViewAllTap,
-              child: Row(
-                children: [
-                  Text(
-                    AppStrings.viewAll,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  Gap(2.w),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 16.r,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
+              child: Text(
+                'Barchasi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFFB12A0B),
+                ),
               ),
             ),
           ],
         ),
         Gap(14.h),
         SizedBox(
-          height: 100.h,
+          height: 112.h,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
             itemCount: collections.length,
-            separatorBuilder: (context, index) => Gap(12.w),
+            separatorBuilder: (context, index) => Gap(10.w),
             itemBuilder: (context, index) {
               final item = collections[index];
-
               return GestureDetector(
                 onTap: () => onCollectionTap?.call(item),
                 child: Container(
-                  width: 150.w,
+                  width: 148.w,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14.r),
-                    border: Border.all(
-                      color: const Color(0xFFE5E7EB),
-                      width: 1.w,
-                    ),
+                    borderRadius: BorderRadius.circular(16.r),
+                    color: const Color(0xFFF7F7F7),
                   ),
+                  clipBehavior: Clip.antiAlias,
                   child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      // Background Image with dark gradient overlay
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14.r),
-                        child: Image.asset(
-                          item.imagePath,
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.high,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: const Color(0xFFF3F4F6),
-                          ),
-                        ),
+                      Image.asset(
+                        item.imagePath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(color: const Color(0xFFF7F7F7)),
                       ),
+                      // Darkening gradient
                       Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14.r),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withValues(alpha: 0.75),
+                              Colors.black.withValues(alpha: 0.65),
                             ],
                           ),
                         ),
                       ),
-
-                      // Text Info
+                      // Text
                       Positioned(
-                        left: 10.w,
-                        right: 10.w,
-                        bottom: 10.h,
+                        left: 12.w,
+                        right: 12.w,
+                        bottom: 12.h,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -160,16 +135,18 @@ class HomeCollectionsSection extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5.sp,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w500,
                                 color: Colors.white,
                               ),
                             ),
+                            Gap(2.h),
                             Text(
                               item.placesCount,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5.sp,
-                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
                           ],

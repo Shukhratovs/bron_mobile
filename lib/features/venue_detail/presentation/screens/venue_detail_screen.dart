@@ -43,8 +43,6 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
   ReviewModel? _topReview;
   bool _isLoading = true;
   String? _errorMessage;
-  bool _isFavorite = false;
-
   @override
   void initState() {
     super.initState();
@@ -53,8 +51,21 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
           remoteDataSource: VenueRemoteDataSourceImpl(apiClient: AppSession.apiClient),
         );
     _reviewRepository = ReviewRepositoryImpl(remoteDataSource: ReviewRemoteDataSourceImpl(apiClient: AppSession.apiClient));
+    AppSession.favorites.idsListenable.addListener(_onFavChanged);
     _load();
   }
+
+  @override
+  void dispose() {
+    AppSession.favorites.idsListenable.removeListener(_onFavChanged);
+    super.dispose();
+  }
+
+  void _onFavChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _isFavorite => AppSession.favorites.isFavorite(widget.venueId);
 
   Future<void> _load() async {
     setState(() {
@@ -217,27 +228,25 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Back button
-                            _buildCircleButton(
-                              icon: Icons.arrow_back_ios_new_rounded,
+                            _buildSvgCircleButton(
+                              svgPath: AppAssets.iconArrowLeftSLine,
                               onTap: () => Navigator.pop(context),
                             ),
                             Row(
                               children: [
-                                _buildCircleButton(
-                                  icon: Icons.share_outlined,
+                                _buildSvgCircleButton(
+                                  svgPath: AppAssets.iconShareForwardLine,
                                   onTap: _share,
                                 ),
                                 Gap(10.w),
-                                _buildCircleButton(
-                                  icon: _isFavorite
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
+                                _buildSvgCircleButton(
+                                  svgPath: _isFavorite
+                                      ? AppAssets.iconHeartFill
+                                      : AppAssets.iconHeartLine,
                                   color: _isFavorite
                                       ? AppColors.primary
                                       : const Color(0xFF1A1A1A),
-                                  onTap: () {
-                                    setState(() => _isFavorite = !_isFavorite);
-                                  },
+                                  onTap: () => AppSession.favorites.toggle(widget.venueId),
                                 ),
                               ],
                             ),
@@ -282,10 +291,10 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Icons.star_rounded,
-                                    color: Colors.amber,
-                                    size: 16,
+                                  AppIcon(
+                                    AppAssets.iconStarFill,
+                                    size: 16.r,
+                                    color: AppColors.primary,
                                   ),
                                   Gap(3.w),
                                   Text(
@@ -304,8 +313,8 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                       Gap(12.h),
 
                       // Location & Hours
-                      _buildIconTextRow(
-                        Icons.location_on_outlined,
+                      _buildSvgTextRow(
+                        AppAssets.iconMapPinLine,
                         [
                           if (venue.address != null) venue.address!,
                           if (venue.hoursText != null) venue.hoursText!,
@@ -313,8 +322,8 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                       ),
                       if (venue.avgCheck != null) ...[
                         Gap(6.h),
-                        _buildIconTextRow(
-                          Icons.payments_outlined,
+                        _buildSvgTextRow(
+                          AppAssets.iconWallet3Line,
                           '~${formatSom(venue.avgCheck!)} / kishi',
                         ),
                       ],
@@ -472,10 +481,10 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                                   ),
                                   Row(
                                     children: [
-                                      const Icon(
-                                        Icons.star_rounded,
-                                        color: Colors.amber,
-                                        size: 15,
+                                      AppIcon(
+                                        AppAssets.iconStarFill,
+                                        size: 15.r,
+                                        color: AppColors.primary,
                                       ),
                                       Gap(2.w),
                                       Text(
@@ -546,8 +555,8 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
     );
   }
 
-  Widget _buildCircleButton({
-    required IconData icon,
+  Widget _buildSvgCircleButton({
+    required String svgPath,
     required VoidCallback onTap,
     Color color = const Color(0xFF1A1A1A),
   }) {
@@ -567,17 +576,17 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
           ],
         ),
         child: Center(
-          child: Icon(icon, size: 18.r, color: color),
+          child: AppIcon(svgPath, size: 20.r, color: color),
         ),
       ),
     );
   }
 
-  Widget _buildIconTextRow(IconData icon, String text) {
+  Widget _buildSvgTextRow(String svgPath, String text) {
     if (text.isEmpty) return const SizedBox.shrink();
     return Row(
       children: [
-        Icon(icon, size: 16.r, color: AppColors.textSecondary),
+        AppIcon(svgPath, size: 16.r, color: AppColors.textSecondary),
         Gap(8.w),
         Expanded(
           child: Text(

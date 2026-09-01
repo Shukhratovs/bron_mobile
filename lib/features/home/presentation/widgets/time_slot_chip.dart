@@ -6,12 +6,14 @@ import '../../../../core/constants/app_colors.dart';
 class TimeSlotChip extends StatelessWidget {
   final String time;
   final bool isSelected;
+  final bool large;
   final VoidCallback? onTap;
 
   const TimeSlotChip({
     super.key,
     required this.time,
     this.isSelected = false,
+    this.large = false,
     this.onTap,
   });
 
@@ -20,21 +22,26 @@ class TimeSlotChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: large ? 14.w : 10.w,
+          vertical: large ? 8.h : 6.h,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(8.r),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : const Color(0xFFE5E7EB),
-            width: 0.8.w,
-          ),
+          color: isSelected ? AppColors.primary : const Color(0xFFF7F7F7),
+          borderRadius: BorderRadius.circular(large ? 999.r : 9.r),
+          border: isSelected
+              ? null
+              : Border.all(
+                  color: const Color(0xFFEAEAEA),
+                  width: 1,
+                ),
         ),
         child: Text(
           time,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 12.sp,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? Colors.white : AppColors.textPrimary,
+            fontSize: large ? 14.sp : 12.sp,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : const Color(0xFF161616),
           ),
         ),
       ),

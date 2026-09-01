@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 class ProfileBonusCardWidget extends StatelessWidget {
   final VoidCallback onTap;
@@ -105,9 +106,9 @@ class ProfileBonusCardWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 13.r,
+                  child: AppIcon(
+                    AppAssets.iconArrowRightSLine,
+                    size: 16.r,
                     color: Colors.white,
                   ),
                 ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/telegram_config.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/widgets/bron_logo.dart';
 import '../../data/models/telegram_auth_request_model.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -101,6 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _unfocus,
@@ -239,6 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

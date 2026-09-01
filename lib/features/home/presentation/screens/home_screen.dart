@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/network/api_result.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/app_session.dart';
+import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../profile/data/datasources/profile_remote_data_source.dart';
 import '../../../profile/data/repositories/profile_repository_impl.dart';
 import '../../../profile/presentation/screens/notifications_screen.dart';
@@ -19,12 +23,12 @@ import '../../../venue_detail/presentation/screens/venue_detail_screen.dart';
 import '../../data/models/banner_model.dart';
 import '../../data/models/category_model.dart';
 import '../../domain/venue_filters.dart';
+import '../bloc/home_bloc.dart';
 import '../widgets/home_available_today_section.dart';
 import '../widgets/home_banner_widget.dart';
 import '../widgets/home_categories_widget.dart';
 import '../widgets/home_collections_section.dart';
 import '../widgets/home_header_widget.dart';
-import '../widgets/home_search_bar_widget.dart';
 import '../widgets/venue_card_skeleton.dart';
 import '../widgets/venue_card_widget.dart';
 
@@ -38,75 +42,47 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final VenueRepository _repository;
+  late final HomeBloc _homeBloc;
   final List<CategoryModel> _categories = CategoryModel.categories;
   final BannerModel _banner = BannerModel.mockBanners.first;
 
-  String? _selectedKind;
-  VenueFilters _filters = const VenueFilters();
-  final Set<String> _favoriteVenueIds = {};
-
-  List<VenueEntity> _venues = [];
-  List<VenueEntity> _todayVenues = [];
-  bool _isLoading = true;
-  String? _errorMessage;
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolled = false;
 
   @override
   void initState() {
     super.initState();
-    _repository = widget.repository ??
-        VenueRepositoryImpl(remoteDataSource: VenueRemoteDataSourceImpl(apiClient: AppSession.apiClient));
-    _load();
+    final repo = widget.repository ??
+        VenueRepositoryImpl(
+          remoteDataSource: VenueRemoteDataSourceImpl(apiClient: AppSession.apiClient),
+        );
+    _homeBloc = HomeBloc(venueRepository: repo)..add(const HomeLoadRequested());
+    _scrollController.addListener(_onScroll);
+    AppSession.favorites.idsListenable.addListener(_onFavoritesChanged);
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  @override
+  void dispose() {
+    _homeBloc.close();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    AppSession.favorites.idsListenable.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
 
-    final today = DateTime.now();
-    final dateParam = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+  void _onFavoritesChanged() {
+    if (mounted) setState(() {});
+  }
 
-    final results = await Future.wait([
-      _repository.getVenues(
-        kind: _selectedKind ?? _filters.kind,
-        district: _filters.district,
-        cuisine: _filters.cuisine,
-        check: _filters.check,
-        ratingMin: _filters.ratingMin,
-        sort: _filters.sort == 'yaqin' ? null : _filters.sort,
-        limit: 20,
-      ),
-      _repository.getVenues(kind: 'restoran', date: dateParam, guests: 2, limit: 6),
-    ]);
-    if (!mounted) return;
-
-    final listResult = results[0];
-    final todayResult = results[1];
-
-    switch (listResult) {
-      case Success(:final data):
-        setState(() {
-          _venues = data.items;
-          _isLoading = false;
-        });
-      case Failure(:final exception):
-        setState(() {
-          _errorMessage = exception.message;
-          _isLoading = false;
-        });
-    }
-    if (todayResult case Success(:final data)) {
-      setState(() => _todayVenues = data.items);
+  void _onScroll() {
+    final scrolled = _scrollController.offset > 10;
+    if (scrolled != _isScrolled) {
+      setState(() => _isScrolled = scrolled);
     }
   }
 
   void _onCategorySelected(String id) {
-    setState(() {
-      _selectedKind = _selectedKind == id ? null : id;
-    });
-    _load();
+    _homeBloc.add(HomeCategorySelected(id));
   }
 
   void _openVenueDetail(VenueEntity venue) {
@@ -124,13 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _toggleFavorite(String id) {
-    setState(() {
-      if (_favoriteVenueIds.contains(id)) {
-        _favoriteVenueIds.remove(id);
-      } else {
-        _favoriteVenueIds.add(id);
-      }
-    });
+    AppSession.favorites.toggle(id);
   }
 
   void _openSearch() {
@@ -138,13 +108,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openFilters() async {
+    final currentFilters = _homeBloc.state.filters;
     final result = await Navigator.push<VenueFilters>(
       context,
-      MaterialPageRoute(builder: (context) => FiltrlarScreen(initial: _filters)),
+      MaterialPageRoute(builder: (context) => FiltrlarScreen(initial: currentFilters)),
     );
     if (result != null) {
-      setState(() => _filters = result);
-      _load();
+      _homeBloc.add(HomeFiltersChanged(result));
     }
   }
 
@@ -163,122 +133,335 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          onRefresh: _load,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 120.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: BlocBuilder<LanguageCubit, LanguageState>(
+        builder: (context, langState) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF7F7F7),
+            body: Column(
               children: [
-                // 1. Top Header: Logo, City Pill, Notification Bell
-                HomeHeaderWidget(
-                  onCityTap: () {},
-                  onNotificationTap: _openNotifications,
-                ),
-                Gap(16.h),
-
-                // 2. Search Bar & Filter Trigger
-                HomeSearchBarWidget(
-                  onTap: _openSearch,
-                  onFilterTap: _openFilters,
-                ),
-                Gap(18.h),
-
-                // 3. Category Selector Circles
-                HomeCategoriesWidget(
-                  categories: _categories,
-                  selectedCategoryId: _selectedKind ?? '',
-                  onCategorySelected: _onCategorySelected,
-                ),
-                Gap(16.h),
-
-                // 4. Promo Banner
-                HomeBannerWidget(
-                  banner: _banner,
-                  onTap: () {
-                    if (_venues.isNotEmpty) _openVenueDetail(_venues.first);
-                  },
-                ),
-                Gap(24.h),
-
-                // 5. Bugun bo'sh joylar (Horizontal Scroll)
-                HomeAvailableTodaySection(
-                  venues: _todayVenues,
-                  onVenueTap: _openVenueDetail,
-                  onTimeSlotTap: _openTimeSlotBooking,
-                  onViewAllTap: _openSearch,
-                ),
-                if (_todayVenues.isNotEmpty) Gap(24.h),
-
-                // 6. To'plamlar (Collections) — kontent moduli hali yo'q
-                HomeCollectionsSection(
-                  onCollectionTap: (collection) {},
-                  onViewAllTap: () {},
-                ),
-                Gap(24.h),
-
-                // 7. Katalog (Feed Section)
-                Text(
-                  'Yaqin atrofda',
-                  style: GoogleFonts.unbounded(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                // Fixed header
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(_isScrolled ? 0 : 28.r),
+                    ),
+                    boxShadow: _isScrolled
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(top: topPadding),
+                    child: HomeHeaderWidget(
+                      onNotificationTap: _openNotifications,
+                      onSearchTap: _openSearch,
+                      onFilterTap: _openFilters,
+                    ),
                   ),
                 ),
-                Gap(14.h),
 
-                if (_isLoading)
-                  const VenueListSkeleton()
-                else if (_errorMessage != null)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                    child: Center(
-                      child: Text(
-                        _errorMessage!,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary),
-                      ),
-                    ),
-                  )
-                else if (_venues.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                    child: Center(
-                      child: Text(
-                        'Bu bo\'yicha muassasa topilmadi',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary),
-                      ),
-                    ),
-                  )
-                else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _venues.length,
-                    separatorBuilder: (context, index) => Gap(16.h),
-                    itemBuilder: (context, index) {
-                      final venue = _venues[index];
-                      final isFavorite = _favoriteVenueIds.contains(venue.id);
-
-                      return VenueCardWidget(
-                        venue: venue,
-                        isFavorite: isFavorite,
-                        onTap: () => _openVenueDetail(venue),
-                        onTimeSlotTap: (time) => _openTimeSlotBooking(venue, time),
-                        onFavoriteTap: () => _toggleFavorite(venue.id),
+                // Scrollable content
+                Expanded(
+                  child: BlocBuilder<HomeBloc, HomeState>(
+                    bloc: _homeBloc,
+                    builder: (context, state) {
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          _homeBloc.add(const HomeLoadRequested());
+                          await _homeBloc.stream.firstWhere(
+                            (s) => s.status != HomeStatus.loading,
+                          );
+                        },
+                        color: AppColors.primary,
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Gap(16.h),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                                child: state.status == HomeStatus.loading && state.venues.isEmpty
+                                    ? _buildShimmerContent()
+                                    : _buildContent(state),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return AppShimmer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Categories skeleton
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(
+              4,
+              (_) => Column(
+                children: [
+                  ShimmerBox(width: 56.r, height: 56.r, radius: 999),
+                  Gap(8.h),
+                  ShimmerBox(width: 48.w, height: 12.h, radius: 4),
+                ],
+              ),
+            ),
+          ),
+          Gap(16.h),
+          ShimmerBox(width: double.infinity, height: 84.h, radius: 20),
+          Gap(24.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ShimmerBox(width: 160.w, height: 18.h),
+              ShimmerBox(width: 60.w, height: 16.h),
+            ],
+          ),
+          Gap(14.h),
+          SizedBox(
+            height: 214.h,
+            child: Row(
+              children: [
+                Expanded(child: _buildSmallCardSkeleton()),
+                Gap(12.w),
+                Expanded(child: _buildSmallCardSkeleton()),
               ],
             ),
           ),
-        ),
+          Gap(24.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ShimmerBox(width: 100.w, height: 18.h),
+              ShimmerBox(width: 60.w, height: 16.h),
+            ],
+          ),
+          Gap(14.h),
+          SizedBox(
+            height: 112.h,
+            child: Row(
+              children: [
+                Expanded(child: ShimmerBox(width: double.infinity, height: 112.h, radius: 16)),
+                Gap(10.w),
+                Expanded(child: ShimmerBox(width: double.infinity, height: 112.h, radius: 16)),
+              ],
+            ),
+          ),
+          Gap(24.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ShimmerBox(width: 130.w, height: 18.h),
+              ShimmerBox(width: 60.w, height: 16.h),
+            ],
+          ),
+          Gap(14.h),
+          const VenueCardSkeleton(),
+          Gap(14.h),
+          const VenueCardSkeleton(),
+          Gap(120.h),
+        ],
       ),
+    );
+  }
+
+  Widget _buildSmallCardSkeleton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ShimmerBox(width: double.infinity, height: 110.h, radius: 0),
+          Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerBox(width: 140.w, height: 16.h),
+                Gap(8.h),
+                ShimmerBox(width: 100.w, height: 12.h),
+                Gap(8.h),
+                Row(
+                  children: [
+                    ShimmerBox.pill(width: 50.w, height: 28.h),
+                    Gap(6.w),
+                    ShimmerBox.pill(width: 50.w, height: 28.h),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(HomeState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HomeCategoriesWidget(
+          categories: _categories,
+          selectedCategoryId: state.selectedKind ?? '',
+          onCategorySelected: _onCategorySelected,
+        ),
+        Gap(16.h),
+        HomeBannerWidget(
+          banner: _banner,
+          onTap: () {
+            if (state.venues.isNotEmpty) _openVenueDetail(state.venues.first);
+          },
+        ),
+        Gap(24.h),
+        HomeAvailableTodaySection(
+          venues: state.todayVenues,
+          onVenueTap: _openVenueDetail,
+          onTimeSlotTap: _openTimeSlotBooking,
+          onViewAllTap: _openSearch,
+        ),
+        if (state.todayVenues.isNotEmpty) Gap(24.h),
+        HomeCollectionsSection(
+          onCollectionTap: (collection) {},
+          onViewAllTap: () {},
+        ),
+        Gap(24.h),
+
+        // Yaqin atrofda
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              AppStrings.nearMe,
+              style: GoogleFonts.unbounded(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF161616),
+              ),
+            ),
+            GestureDetector(
+              onTap: _openSearch,
+              child: Text(
+                AppStrings.viewAll,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFFB12A0B),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Gap(14.h),
+
+        if (state.errorMessage != null)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.h),
+            child: Center(
+              child: Text(
+                state.errorMessage!,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          )
+        else if (state.venues.isEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.h),
+            child: Center(
+              child: Text(
+                AppStrings.noData,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 500;
+              if (isWide) {
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14.w,
+                    mainAxisSpacing: 14.h,
+                    childAspectRatio: 0.72,
+                  ),
+                  itemCount: state.venues.length,
+                  itemBuilder: (context, index) {
+                    final venue = state.venues[index];
+                    final isFavorite = AppSession.favorites.isFavorite(venue.id);
+                    return VenueCardWidget(
+                      venue: venue,
+                      isFavorite: isFavorite,
+                      onTap: () => _openVenueDetail(venue),
+                      onTimeSlotTap: (time) => _openTimeSlotBooking(venue, time),
+                      onFavoriteTap: () => _toggleFavorite(venue.id),
+                    );
+                  },
+                );
+              }
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: state.venues.length,
+                separatorBuilder: (context, index) => Gap(14.h),
+                itemBuilder: (context, index) {
+                  final venue = state.venues[index];
+                  final isFavorite = AppSession.favorites.isFavorite(venue.id);
+                  return VenueCardWidget(
+                    venue: venue,
+                    isFavorite: isFavorite,
+                    onTap: () => _openVenueDetail(venue),
+                    onTimeSlotTap: (time) => _openTimeSlotBooking(venue, time),
+                    onFavoriteTap: () => _toggleFavorite(venue.id),
+                  );
+                },
+              );
+            },
+          ),
+
+        Gap(120.h),
+      ],
     );
   }
 }

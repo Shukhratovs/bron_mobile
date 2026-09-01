@@ -21,7 +21,7 @@ class BannerModel {
           title: 'Tinch va sokin kechki ovqat',
           subtitle: 'Romantik va sokin muhitdagi restoranlar',
           discount: '-20%',
-          imagePath: AppAssets.onboardingSecond,
+          imagePath: AppAssets.bannerPromo,
         ),
       ];
 }

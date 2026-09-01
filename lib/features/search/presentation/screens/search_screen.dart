@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../home/presentation/widgets/venue_card_widget.dart';
@@ -88,7 +90,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
+      return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
@@ -146,6 +150,8 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 

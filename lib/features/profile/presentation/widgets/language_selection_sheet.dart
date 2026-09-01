@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 
 class LanguageSelectionSheet extends StatefulWidget {
   const LanguageSelectionSheet({super.key});
@@ -13,7 +15,10 @@ class LanguageSelectionSheet extends StatefulWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => const LanguageSelectionSheet(),
+      builder: (sheetContext) => BlocProvider.value(
+        value: context.read<LanguageCubit>(),
+        child: const LanguageSelectionSheet(),
+      ),
     );
   }
 
@@ -27,7 +32,7 @@ class _LanguageSelectionSheetState extends State<LanguageSelectionSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedLanguage = AppStrings.currentLanguage;
+    _selectedLanguage = context.read<LanguageCubit>().state.language;
   }
 
   @override
@@ -134,7 +139,7 @@ class _LanguageSelectionSheetState extends State<LanguageSelectionSheet> {
             // Confirm Button
             ElevatedButton(
               onPressed: () {
-                AppStrings.currentLanguage = _selectedLanguage;
+                context.read<LanguageCubit>().changeLanguage(_selectedLanguage);
                 Navigator.of(context).pop();
               },
               child: Text(AppStrings.save),

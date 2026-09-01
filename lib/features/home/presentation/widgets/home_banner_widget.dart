@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../data/models/banner_model.dart';
 
 class HomeBannerWidget extends StatelessWidget {
@@ -21,105 +20,87 @@ class HomeBannerWidget extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        constraints: BoxConstraints(minHeight: 88.h),
+        height: 84.h,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF3B1E14),
-              Color(0xFF1E1E24),
-            ],
-          ),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.25),
-            width: 1.w,
-          ),
+          borderRadius: BorderRadius.circular(20.r),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            // Right Side Decorative Accent or Image
+            // Background image
             if (banner.imagePath != null)
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: 120.w,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.horizontal(
-                    right: Radius.circular(16.r),
-                  ),
-                  child: ShaderMask(
-                    shaderCallback: (bounds) {
-                      return const LinearGradient(
-                        begin: Alignment.centerRight,
-                        end: Alignment.centerLeft,
-                        colors: [Colors.black, Colors.transparent],
-                      ).createShader(bounds);
-                    },
-                    blendMode: BlendMode.dstIn,
-                    child: Image.asset(
-                      banner.imagePath!,
-                      fit: BoxFit.cover,
-                      filterQuality: FilterQuality.high,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const SizedBox.shrink(),
-                    ),
-                  ),
+              Image.asset(
+                banner.imagePath!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(color: const Color(0xFF2C1810)),
+              ),
+            // Subtle overlay for text readability
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.1),
+                  ],
                 ),
               ),
-
-            // Text Content
+            ),
+            // Content
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+              padding: EdgeInsets.fromLTRB(14.w, 14.h, 16.w, 14.h),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 2.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(6.r),
-                        ),
-                        child: Text(
-                          banner.discount,
-                          style: GoogleFonts.unbounded(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                  // Discount badge
+                  Container(
+                    width: 56.r,
+                    height: 56.r,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Center(
+                      child: Text(
+                        banner.discount,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFFFF2EF),
                         ),
                       ),
-                      Gap(8.w),
-                      Expanded(
-                        child: Text(
+                    ),
+                  ),
+                  Gap(14.w),
+                  // Text
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
                           banner.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.unbounded(
-                            fontSize: 13.sp,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textWhite,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Gap(6.h),
-                  Text(
-                    banner.subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5.sp,
-                      color: AppColors.textMuted,
+                        Gap(3.h),
+                        Text(
+                          banner.subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14.sp,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

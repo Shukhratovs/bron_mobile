@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/app_icon.dart';
 
 class HomeSearchBarWidget extends StatelessWidget {
   final VoidCallback? onTap;
@@ -23,27 +24,23 @@ class HomeSearchBarWidget extends StatelessWidget {
           child: GestureDetector(
             onTap: onTap,
             child: Container(
-              height: 48.h,
+              height: 44.h,
               padding: EdgeInsets.symmetric(horizontal: 14.w),
               decoration: BoxDecoration(
                 color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(14.r),
-                border: Border.all(
-                  color: const Color(0xFFE5E7EB),
-                  width: 1.w,
-                ),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.search_rounded,
+                  AppIcon(
+                    AppAssets.iconSearch2Line,
+                    size: 18.r,
                     color: AppColors.textMuted,
-                    size: 20.r,
                   ),
                   Gap(10.w),
                   Expanded(
                     child: Text(
-                      AppStrings.searchPlaceholder,
+                      'Restoran, taom yoki joy',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
@@ -61,19 +58,15 @@ class HomeSearchBarWidget extends StatelessWidget {
         GestureDetector(
           onTap: onFilterTap,
           child: Container(
-            width: 48.r,
-            height: 48.r,
+            width: 44.r,
+            height: 44.r,
             decoration: BoxDecoration(
               color: const Color(0xFFF3F4F6),
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 1.w,
-              ),
+              borderRadius: BorderRadius.circular(12.r),
             ),
             child: Center(
-              child: Icon(
-                Icons.tune_rounded,
+              child: AppIcon(
+                AppAssets.iconEqualizer2Line,
                 size: 20.r,
                 color: AppColors.textPrimary,
               ),

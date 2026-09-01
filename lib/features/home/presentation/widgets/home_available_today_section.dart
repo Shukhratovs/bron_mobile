@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/app_icon.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
 import 'time_slot_chip.dart';
 
@@ -27,7 +28,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
+        // Section header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -35,117 +36,94 @@ class HomeAvailableTodaySection extends StatelessWidget {
               child: Text(
                 'Bugun bo\'sh joylar',
                 style: GoogleFonts.unbounded(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF161616),
                 ),
               ),
             ),
             GestureDetector(
               onTap: onViewAllTap,
-              child: Row(
-                children: [
-                  Text(
-                    AppStrings.viewAll,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  Gap(2.w),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 16.r,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
+              child: Text(
+                'Barchasi',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFFB12A0B),
+                ),
               ),
             ),
           ],
         ),
         Gap(14.h),
 
-        // Horizontal List of Venues
+        // Horizontal cards
         SizedBox(
-          height: 225.h,
+          height: 214.h,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
             itemCount: venues.length,
-            separatorBuilder: (context, index) => Gap(14.w),
+            separatorBuilder: (context, index) => Gap(12.w),
             itemBuilder: (context, index) {
               final venue = venues[index];
-
               return GestureDetector(
                 onTap: () => onVenueTap?.call(venue),
                 child: Container(
-                  width: 210.w,
+                  width: 200.w,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(
-                      color: const Color(0xFFE5E7EB),
-                      width: 1.w,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Image
+                      // Image
                       ClipRRect(
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(16.r),
                         ),
                         child: venue.photoUrl == null || venue.photoUrl!.isEmpty
                             ? Container(
-                                height: 86.h,
+                                height: 110.h,
                                 width: double.infinity,
-                                color: const Color(0xFFF3F4F6),
-                                child: Icon(
-                                  Icons.restaurant_rounded,
-                                  size: 28.r,
-                                  color: AppColors.textMuted,
-                                ),
-                              )
-                            : Image.network(
-                                venue.photoUrl!,
-                                height: 86.h,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                filterQuality: FilterQuality.high,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  height: 86.h,
-                                  color: const Color(0xFFF3F4F6),
-                                  child: Icon(
-                                    Icons.restaurant_rounded,
+                                color: const Color(0xFFF7F7F7),
+                                child: Center(
+                                  child: AppIcon(
+                                    AppAssets.iconRestaurantLine,
                                     size: 28.r,
                                     color: AppColors.textMuted,
                                   ),
                                 ),
+                              )
+                            : Image.network(
+                                venue.photoUrl!,
+                                height: 110.h,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                  height: 110.h,
+                                  width: double.infinity,
+                                  color: const Color(0xFFF7F7F7),
+                                  child: Center(
+                                    child: AppIcon(
+                                      AppAssets.iconRestaurantLine,
+                                      size: 28.r,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ),
+                                ),
                               ),
                       ),
-
-                      // Venue Info
+                      // Body
                       Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 8.h,
-                        ),
+                        padding: EdgeInsets.all(12.w),
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Name + rating
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: Text(
@@ -153,67 +131,72 @@ class HomeAvailableTodaySection extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13.5.sp,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFF161616),
                                     ),
                                   ),
                                 ),
-                                if (venue.rating != null)
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.star_rounded,
-                                        color: Colors.amber,
-                                        size: 15.r,
-                                      ),
-                                      Gap(2.w),
-                                      Text(
-                                        venue.rating!.toStringAsFixed(1),
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12.sp,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
+                                if (venue.rating != null) ...[
+                                  Gap(4.w),
+                                  AppIcon(
+                                    AppAssets.iconStarFill,
+                                    size: 13.r,
+                                    color: AppColors.primary,
                                   ),
+                                  Gap(3.w),
+                                  Text(
+                                    venue.rating!.toStringAsFixed(1),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w400,
+                                      color: const Color(0xFF161616),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
-                            Gap(4.h),
+                            Gap(2.h),
+                            // Meta
                             Text(
                               [
-                                if (venue.district != null) venue.district!,
+                                if (venue.cuisine != null) venue.cuisine!,
+                                if (venue.cuisine == null &&
+                                    venue.district != null)
+                                  venue.district!,
                                 if (venue.distanceKm != null)
                                   '${venue.distanceKm!.toStringAsFixed(1)} km',
-                              ].join(' • '),
+                              ].join(' · '),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5.sp,
-                                color: AppColors.textSecondary,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFFA3A3A3),
                               ),
                             ),
-                            Gap(8.h),
-
-                            // Time Slot Chips Row
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: venue.freeSlots
-                                    .take(3)
-                                    .map(
-                                      (time) => Padding(
-                                        padding: EdgeInsets.only(right: 6.w),
-                                        child: TimeSlotChip(
-                                          time: time,
-                                          onTap: () => onTimeSlotTap?.call(venue, time),
+                            // Time slots
+                            if (venue.freeSlots.isNotEmpty) ...[
+                              Gap(8.h),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: venue.freeSlots
+                                      .take(3)
+                                      .map(
+                                        (time) => Padding(
+                                          padding: EdgeInsets.only(right: 6.w),
+                                          child: TimeSlotChip(
+                                            time: time,
+                                            onTap: () => onTimeSlotTap?.call(
+                                                venue, time),
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                    .toList(),
+                                      )
+                                      .toList(),
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

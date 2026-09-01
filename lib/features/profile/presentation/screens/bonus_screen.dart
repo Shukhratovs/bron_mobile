@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 
@@ -195,7 +197,11 @@ class _BonusScreenState extends State<BonusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _isSubscribed ? _buildActiveSubscriptionView() : _buildPurchaseView();
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
+        return _isSubscribed ? _buildActiveSubscriptionView() : _buildPurchaseView();
+      },
+    );
   }
 
   // =========================================================================

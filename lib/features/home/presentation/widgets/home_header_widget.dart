@@ -2,100 +2,156 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/widgets/bron_logo.dart';
 
 class HomeHeaderWidget extends StatelessWidget {
-  final VoidCallback? onCityTap;
   final VoidCallback? onNotificationTap;
+  final VoidCallback? onSearchTap;
+  final VoidCallback? onFilterTap;
 
   const HomeHeaderWidget({
     super.key,
-    this.onCityTap,
     this.onNotificationTap,
+    this.onSearchTap,
+    this.onFilterTap,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 20.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(28.r),
+        ),
+      ),
+      child: Column(
+        children: [
+          HomeHeaderLogoRow(onNotificationTap: onNotificationTap),
+          Gap(24.h),
+          HomeHeaderSearchRow(
+            onSearchTap: onSearchTap,
+            onFilterTap: onFilterTap,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Logo + notification icon row (always pinned in sticky header).
+class HomeHeaderLogoRow extends StatelessWidget {
+  final VoidCallback? onNotificationTap;
+
+  const HomeHeaderLogoRow({super.key, this.onNotificationTap});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Bron Brand Logo (Dark text for Light mode)
         BronLogo(
-          width: 80.w,
-          height: 30.h,
+          width: 64.w,
+          height: 24.h,
           isDarkText: true,
         ),
+        GestureDetector(
+          onTap: onNotificationTap,
+          child: AppIcon(
+            AppAssets.iconNotification3Line,
+            size: 24.r,
+            color: const Color(0xFF5C5C5C),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // City Location Selector Pill
-            GestureDetector(
-              onTap: onCityTap,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(20.r),
-                  border: Border.all(
-                    color: const Color(0xFFE5E7EB),
-                    width: 1.w,
+/// Search bar + filter button row.
+class HomeHeaderSearchRow extends StatelessWidget {
+  final VoidCallback? onSearchTap;
+  final VoidCallback? onFilterTap;
+
+  const HomeHeaderSearchRow({super.key, this.onSearchTap, this.onFilterTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: onSearchTap,
+            child: Container(
+              height: 44.h,
+              padding: EdgeInsets.symmetric(horizontal: 14.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F7F7),
+                borderRadius: BorderRadius.circular(14.r),
+              ),
+              child: Row(
+                children: [
+                  AppIcon(
+                    AppAssets.iconSearch2Line,
+                    size: 20.r,
+                    color: const Color(0xFFA3A3A3),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 15.r,
-                      color: AppColors.primary,
-                    ),
-                    Gap(4.w),
-                    Text(
-                      AppStrings.cityTashkent,
+                  Gap(10.w),
+                  Expanded(
+                    child: Text(
+                      AppStrings.searchPlaceholder,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        fontSize: 14.sp,
+                        color: const Color(0xFFA3A3A3),
                       ),
                     ),
-                    Gap(2.w),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 16.r,
-                      color: AppColors.textMuted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Gap(8.w),
+        GestureDetector(
+          onTap: onFilterTap,
+          child: Container(
+            width: 44.r,
+            height: 44.r,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F7F7),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AppIcon(
+                  AppAssets.iconEqualizer2Line,
+                  size: 22.r,
+                  color: const Color(0xFF161616),
+                ),
+                // Active filter dot
+                Positioned(
+                  top: 8.h,
+                  right: 8.w,
+                  child: Container(
+                    width: 12.r,
+                    height: 12.r,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161616),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2.w),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Gap(10.w),
-
-            // Notification Bell Button
-            GestureDetector(
-              onTap: onNotificationTap,
-              child: Container(
-                width: 36.r,
-                height: 36.r,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE5E7EB),
-                    width: 1.w,
                   ),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.notifications_none_rounded,
-                    size: 20.r,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );

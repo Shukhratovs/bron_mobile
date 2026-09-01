@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 import 'auth_local_storage.dart';
+import 'favorites_local_storage.dart';
 
 /// Process-wide session: one persistent [AuthLocalStorage] and one shared,
 /// authenticated [ApiClient]. Initialized once in `main()` before `runApp`,
@@ -13,12 +14,14 @@ class AppSession {
 
   static late final AuthLocalStorage authLocalStorage;
   static late final ApiClient apiClient;
+  static late final FavoritesLocalStorage favorites;
   static bool _initialized = false;
 
   static Future<void> init() async {
     if (_initialized) return;
     authLocalStorage = await AuthLocalStorageImpl.create();
     apiClient = StandardApiClient(authLocalStorage: authLocalStorage);
+    favorites = await FavoritesLocalStorage.getInstance();
     _initialized = true;
   }
 

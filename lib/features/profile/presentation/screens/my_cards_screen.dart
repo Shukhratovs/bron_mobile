@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../booking/presentation/screens/bind_card_screen.dart';
@@ -93,6 +96,8 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -104,7 +109,7 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Kartalarim',
+          AppStrings.myCards,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18.sp,
             fontWeight: FontWeight.w700,
@@ -269,6 +274,8 @@ class _MyCardsScreenState extends State<MyCardsScreen> {
                 ],
               ),
             ),
+    );
+      },
     );
   }
 }

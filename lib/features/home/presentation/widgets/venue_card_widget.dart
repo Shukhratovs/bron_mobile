@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/app_icon.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
-import '../../../venue/venue_kind.dart';
 import 'time_slot_chip.dart';
 
 class VenueCardWidget extends StatelessWidget {
@@ -26,11 +27,12 @@ class VenueCardWidget extends StatelessWidget {
 
   String get _subtitle {
     final parts = <String>[
-      if (venue.district != null && venue.district!.isNotEmpty) venue.district!,
+      if (venue.cuisine != null && venue.cuisine!.isNotEmpty) venue.cuisine!,
+      if (venue.cuisine == null && venue.district != null && venue.district!.isNotEmpty) venue.district!,
       if (venue.distanceKm != null) '${venue.distanceKm!.toStringAsFixed(1)} km',
       if (venue.avgCheck != null) '~${formatSom(venue.avgCheck!)}',
     ];
-    return parts.join(' • ');
+    return parts.join(' · ');
   }
 
   @override
@@ -40,57 +42,45 @@ class VenueCardWidget extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(
-            color: const Color(0xFFE5E7EB),
-            width: 1.w,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Image with Overlays
+            // Image area
             Stack(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(18.r),
+                    top: Radius.circular(20.r),
                   ),
-                  child: _VenueImage(url: venue.photoUrl, height: 154.h),
+                  child: _VenueImage(url: venue.photoUrl, height: 180.h),
                 ),
-
-                // Category Tag
-                Positioned(
-                  left: 12.w,
-                  top: 12.h,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Text(
-                      venueKindLabel(venue.kind),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                // Depozit badge
+                if (venue.depositRequired == true)
+                  Positioned(
+                    left: 12.w,
+                    top: 12.h,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(999.r),
+                      ),
+                      child: Text(
+                        'Depozit',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-
-                // Favorite Heart Button
+                // Favorite heart
                 Positioned(
                   right: 12.w,
                   top: 12.h,
@@ -102,20 +92,16 @@ class VenueCardWidget extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 6,
-                          ),
-                        ],
                       ),
                       child: Center(
-                        child: Icon(
+                        child: AppIcon(
                           isFavorite
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
+                              ? AppAssets.iconHeartFill
+                              : AppAssets.iconHeartLine,
                           size: 18.r,
-                          color: isFavorite ? AppColors.primary : const Color(0xFF374151),
+                          color: isFavorite
+                              ? AppColors.primary
+                              : const Color(0xFF5C5C5C),
                         ),
                       ),
                     ),
@@ -124,87 +110,76 @@ class VenueCardWidget extends StatelessWidget {
               ],
             ),
 
-            // Card Body Info
+            // Body
             Padding(
               padding: EdgeInsets.all(14.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Name + Rating
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
                           venue.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.unbounded(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF161616),
                           ),
                         ),
                       ),
-                      if (venue.rating != null)
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.star_rounded,
-                              color: Colors.amber,
-                              size: 17.r,
-                            ),
-                            Gap(3.w),
-                            Text(
-                              venue.rating!.toStringAsFixed(1),
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            if (venue.reviewsCount != null)
-                              Text(
-                                ' (${venue.reviewsCount})',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5.sp,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                          ],
+                      if (venue.rating != null) ...[
+                        Gap(8.w),
+                        AppIcon(
+                          AppAssets.iconStarFill,
+                          size: 16.r,
+                          color: AppColors.primary,
                         ),
+                        Gap(4.w),
+                        Text(
+                          venue.rating!.toStringAsFixed(1),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF161616),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-                  Gap(6.h),
-
-                  // Location, Distance & Price
-                  Text(
-                    _subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5.sp,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-
-                  // Available Time Slots Chips
-                  if (venue.freeSlots.isNotEmpty) ...[
-                    Gap(12.h),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: venue.freeSlots
-                            .map(
-                              (time) => Padding(
-                                padding: EdgeInsets.only(right: 6.w),
-                                child: TimeSlotChip(
-                                  time: time,
-                                  onTap: () => onTimeSlotTap?.call(time),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                  if (_subtitle.isNotEmpty) ...[
+                    Gap(4.h),
+                    Text(
+                      _subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF5C5C5C),
                       ),
+                    ),
+                  ],
+                  // Time slots
+                  if (venue.freeSlots.isNotEmpty) ...[
+                    Gap(10.h),
+                    Row(
+                      children: venue.freeSlots
+                          .take(4)
+                          .map(
+                            (time) => Padding(
+                              padding: EdgeInsets.only(right: 8.w),
+                              child: TimeSlotChip(
+                                time: time,
+                                large: true,
+                                onTap: () => onTimeSlotTap?.call(time),
+                              ),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                 ],
@@ -229,11 +204,13 @@ class _VenueImage extends StatelessWidget {
       return Container(
         height: height,
         width: double.infinity,
-        color: const Color(0xFFF3F4F6),
-        child: Icon(
-          Icons.image_outlined,
-          size: 48.r,
-          color: AppColors.textMuted,
+        color: const Color(0xFFFFF2EF),
+        child: Center(
+          child: AppIcon(
+            AppAssets.iconImageLine,
+            size: 48.r,
+            color: AppColors.textMuted,
+          ),
         ),
       );
     }
@@ -242,14 +219,16 @@ class _VenueImage extends StatelessWidget {
       height: height,
       width: double.infinity,
       fit: BoxFit.cover,
-      filterQuality: FilterQuality.high,
       errorBuilder: (context, error, stackTrace) => Container(
         height: height,
-        color: const Color(0xFFF3F4F6),
-        child: Icon(
-          Icons.image_outlined,
-          size: 48.r,
-          color: AppColors.textMuted,
+        width: double.infinity,
+        color: const Color(0xFFFFF2EF),
+        child: Center(
+          child: AppIcon(
+            AppAssets.iconImageLine,
+            size: 48.r,
+            color: AppColors.textMuted,
+          ),
         ),
       ),
     );

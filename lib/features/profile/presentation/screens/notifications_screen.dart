@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
@@ -82,6 +85,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -93,7 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Bildirishnomalar',
+          AppStrings.notifications,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18.sp,
             fontWeight: FontWeight.w700,
@@ -110,7 +115,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               color: Color(0xFFE53935),
             ),
             label: Text(
-              'O\'qilgan',
+              AppStrings.markAllAsRead,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13.5.sp,
                 fontWeight: FontWeight.w600,
@@ -133,7 +138,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         AppIcon(AppAssets.iconNotification, size: 56.r, color: const Color(0xFF9CA3AF)),
                         Gap(12.h),
                         Text(
-                          'Hozircha bildirishnoma yo\'q',
+                          AppStrings.noNotifications,
                           style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, color: const Color(0xFF6B7280)),
                         ),
                       ],
@@ -149,6 +154,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     return _buildNotificationCard(item);
                   },
                 ),
+    );
+      },
     );
   }
 
