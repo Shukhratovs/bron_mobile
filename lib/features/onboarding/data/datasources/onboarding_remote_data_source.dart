@@ -1,3 +1,4 @@
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/onboarding_model.dart';
@@ -14,41 +15,36 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
   @override
   Future<List<OnboardingModel>> getOnboardingItems() async {
     try {
-      // Kelajakda API orqali olish mumkin:
-      // final response = await apiClient.get(ApiEndpoints.onboarding);
-      // return (response['data'] as List).map((e) => OnboardingModel.fromJson(e)).toList();
-
-      // Namuna ma'lumotlar (Assets bilan to'liq bog'langan):
       return const [
         OnboardingModel(
           id: 1,
           title: AppStrings.onboardingTitle1,
           description: AppStrings.onboardingDesc1,
-          imagePath: 'assets/images/onboarding_first.png',
+          imagePath: AppAssets.onboardingFirst,
         ),
         OnboardingModel(
           id: 2,
           title: AppStrings.onboardingTitle2,
           description: AppStrings.onboardingDesc2,
-          imagePath: 'assets/images/onboarding_second.png',
+          imagePath: AppAssets.onboardingSecond,
         ),
         OnboardingModel(
           id: 3,
           title: AppStrings.onboardingTitle3,
           description: AppStrings.onboardingDesc3,
-          imagePath: 'assets/images/onboarding_third.png',
+          imagePath: AppAssets.onboardingThird,
         ),
         OnboardingModel(
           id: 4,
           title: AppStrings.onboardingTitle4,
           description: AppStrings.onboardingDesc4,
-          imagePath: 'assets/images/onboarding_fourth.png',
+          imagePath: AppAssets.onboardingFourth,
         ),
         OnboardingModel(
           id: 5,
           title: AppStrings.onboardingTitle5,
           description: AppStrings.onboardingDesc5,
-          imagePath: 'assets/images/onboarding_fifth.png',
+          imagePath: AppAssets.onboardingFifth,
         ),
       ];
     } catch (e) {

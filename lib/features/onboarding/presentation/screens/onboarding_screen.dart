@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
+import '../../../../core/network/app_session.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/widgets/bron_logo.dart';
 import '../../data/datasources/onboarding_remote_data_source.dart';
 import '../../data/repositories/onboarding_repository_impl.dart';
@@ -46,7 +50,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _repository = widget.repository ??
         OnboardingRepositoryImpl(
           remoteDataSource: OnboardingRemoteDataSourceImpl(
-            apiClient: StandardApiClient(),
+            apiClient: AppSession.apiClient,
           ),
         );
     _loadOnboardingData();
@@ -101,6 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _finishOnboarding() {
+    AppSession.markOnboardingSeen();
     if (widget.onCompleted != null) {
       widget.onCompleted!();
     } else {
@@ -139,6 +144,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
+    return _buildScreen(context);
+      },
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: AppColors.backgroundDark,
@@ -159,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64.r, color: AppColors.error),
+                AppIcon(AppAssets.iconErrorWarningLine, size: 64.r, color: AppColors.error),
                 Gap(16.h),
                 Text(
                   _errorMessage!,

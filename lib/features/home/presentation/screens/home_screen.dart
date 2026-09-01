@@ -1,104 +1,467 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/widgets/bron_logo.dart';
+import '../../../../core/language/language_cubit.dart';
+import '../../../../core/network/app_session.dart';
+import '../../../../core/widgets/shimmer_skeleton.dart';
+import '../../../profile/data/datasources/profile_remote_data_source.dart';
+import '../../../profile/data/repositories/profile_repository_impl.dart';
+import '../../../profile/presentation/screens/notifications_screen.dart';
+import '../../../search/presentation/screens/filtrlar_screen.dart';
+import '../../../search/presentation/screens/search_screen.dart';
+import '../../../venue/data/datasources/venue_remote_data_source.dart';
+import '../../../venue/data/repositories/venue_repository_impl.dart';
+import '../../../venue/domain/entities/venue_entity.dart';
+import '../../../venue/domain/repositories/venue_repository.dart';
+import '../../../venue_detail/presentation/screens/vaqt_tanlash_screen.dart';
+import '../../../venue_detail/presentation/screens/venue_detail_screen.dart';
+import '../../data/models/banner_model.dart';
+import '../../data/models/category_model.dart';
+import '../../domain/venue_filters.dart';
+import '../bloc/home_bloc.dart';
+import '../widgets/home_available_today_section.dart';
+import '../widgets/home_banner_widget.dart';
+import '../widgets/home_categories_widget.dart';
+import '../widgets/home_collections_section.dart';
+import '../widgets/home_header_widget.dart';
+import '../widgets/venue_card_skeleton.dart';
+import '../widgets/venue_card_widget.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  final VenueRepository? repository;
+
+  const HomeScreen({super.key, this.repository});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Header (Logo & City)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  BronLogo(width: 86.w, height: 32.h),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(color: AppColors.borderDark),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on_rounded, size: 16.r, color: AppColors.primary),
-                        Gap(4.w),
-                        Text(
-                          AppStrings.cityTashkent,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textWhite,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Gap(24.h),
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-              // Greeting & Title
-              Text(
-                AppStrings.popularPlaces,
-                style: GoogleFonts.unbounded(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textWhite,
-                ),
-              ),
-              Gap(8.h),
-              Text(
-                'Toshkentdagi eng yaxshi joylarni qidiring va bron qiling',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.sp,
-                  color: AppColors.textMuted,
-                ),
-              ),
-              Gap(20.h),
+class _HomeScreenState extends State<HomeScreen> {
+  late final HomeBloc _homeBloc;
+  final List<CategoryModel> _categories = CategoryModel.categories;
+  final BannerModel _banner = BannerModel.mockBanners.first;
 
-              // Search Bar Trigger
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceDark,
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: AppColors.borderDark),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search_rounded, color: AppColors.textMuted, size: 22.r),
-                    Gap(12.w),
-                    Expanded(
-                      child: Text(
-                        AppStrings.searchPlaceholder,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.sp,
-                          color: AppColors.textSecondaryDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final repo = widget.repository ??
+        VenueRepositoryImpl(
+          remoteDataSource: VenueRemoteDataSourceImpl(apiClient: AppSession.apiClient),
+        );
+    _homeBloc = HomeBloc(venueRepository: repo)..add(const HomeLoadRequested());
+    _scrollController.addListener(_onScroll);
+    AppSession.favorites.idsListenable.addListener(_onFavoritesChanged);
+  }
+
+  @override
+  void dispose() {
+    _homeBloc.close();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    AppSession.favorites.idsListenable.removeListener(_onFavoritesChanged);
+    super.dispose();
+  }
+
+  void _onFavoritesChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onScroll() {
+    final scrolled = _scrollController.offset > 10;
+    if (scrolled != _isScrolled) {
+      setState(() => _isScrolled = scrolled);
+    }
+  }
+
+  void _onCategorySelected(String id) {
+    _homeBloc.add(HomeCategorySelected(id));
+  }
+
+  void _openVenueDetail(VenueEntity venue) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VenueDetailScreen(venueId: venue.id)),
+    );
+  }
+
+  void _openTimeSlotBooking(VenueEntity venue, String time) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VaqtTanlashScreen(venue: venue, initialTime: time)),
+    );
+  }
+
+  void _toggleFavorite(String id) {
+    AppSession.favorites.toggle(id);
+  }
+
+  void _openSearch() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const SearchScreen()));
+  }
+
+  void _openFilters() async {
+    final currentFilters = _homeBloc.state.filters;
+    final result = await Navigator.push<VenueFilters>(
+      context,
+      MaterialPageRoute(builder: (context) => FiltrlarScreen(initial: currentFilters)),
+    );
+    if (result != null) {
+      _homeBloc.add(HomeFiltersChanged(result));
+    }
+  }
+
+  void _openNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotificationsScreen(
+          repository: ProfileRepositoryImpl(
+            remoteDataSource: ProfileRemoteDataSourceImpl(apiClient: AppSession.apiClient),
           ),
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: BlocBuilder<LanguageCubit, LanguageState>(
+        builder: (context, langState) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF7F7F7),
+            body: Column(
+              children: [
+                // Fixed header
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(_isScrolled ? 0 : 28.r),
+                    ),
+                    boxShadow: _isScrolled
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(top: topPadding),
+                    child: HomeHeaderWidget(
+                      onNotificationTap: _openNotifications,
+                      onSearchTap: _openSearch,
+                      onFilterTap: _openFilters,
+                    ),
+                  ),
+                ),
+
+                // Scrollable content
+                Expanded(
+                  child: BlocBuilder<HomeBloc, HomeState>(
+                    bloc: _homeBloc,
+                    builder: (context, state) {
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          _homeBloc.add(const HomeLoadRequested());
+                          await _homeBloc.stream.firstWhere(
+                            (s) => s.status != HomeStatus.loading,
+                          );
+                        },
+                        color: AppColors.primary,
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Gap(16.h),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                                child: state.status == HomeStatus.loading && state.venues.isEmpty
+                                    ? _buildShimmerContent()
+                                    : _buildContent(state),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return AppShimmer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Categories skeleton
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(
+              4,
+              (_) => Column(
+                children: [
+                  ShimmerBox(width: 56.r, height: 56.r, radius: 999),
+                  Gap(8.h),
+                  ShimmerBox(width: 48.w, height: 12.h, radius: 4),
+                ],
+              ),
+            ),
+          ),
+          Gap(16.h),
+          ShimmerBox(width: double.infinity, height: 84.h, radius: 20),
+          Gap(24.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ShimmerBox(width: 160.w, height: 18.h),
+              ShimmerBox(width: 60.w, height: 16.h),
+            ],
+          ),
+          Gap(14.h),
+          SizedBox(
+            height: 214.h,
+            child: Row(
+              children: [
+                Expanded(child: _buildSmallCardSkeleton()),
+                Gap(12.w),
+                Expanded(child: _buildSmallCardSkeleton()),
+              ],
+            ),
+          ),
+          Gap(24.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ShimmerBox(width: 100.w, height: 18.h),
+              ShimmerBox(width: 60.w, height: 16.h),
+            ],
+          ),
+          Gap(14.h),
+          SizedBox(
+            height: 112.h,
+            child: Row(
+              children: [
+                Expanded(child: ShimmerBox(width: double.infinity, height: 112.h, radius: 16)),
+                Gap(10.w),
+                Expanded(child: ShimmerBox(width: double.infinity, height: 112.h, radius: 16)),
+              ],
+            ),
+          ),
+          Gap(24.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ShimmerBox(width: 130.w, height: 18.h),
+              ShimmerBox(width: 60.w, height: 16.h),
+            ],
+          ),
+          Gap(14.h),
+          const VenueCardSkeleton(),
+          Gap(14.h),
+          const VenueCardSkeleton(),
+          Gap(120.h),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallCardSkeleton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ShimmerBox(width: double.infinity, height: 110.h, radius: 0),
+          Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerBox(width: 140.w, height: 16.h),
+                Gap(8.h),
+                ShimmerBox(width: 100.w, height: 12.h),
+                Gap(8.h),
+                Row(
+                  children: [
+                    ShimmerBox.pill(width: 50.w, height: 28.h),
+                    Gap(6.w),
+                    ShimmerBox.pill(width: 50.w, height: 28.h),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(HomeState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        HomeCategoriesWidget(
+          categories: _categories,
+          selectedCategoryId: state.selectedKind ?? '',
+          onCategorySelected: _onCategorySelected,
+        ),
+        Gap(16.h),
+        HomeBannerWidget(
+          banner: _banner,
+          onTap: () {
+            if (state.venues.isNotEmpty) _openVenueDetail(state.venues.first);
+          },
+        ),
+        Gap(24.h),
+        HomeAvailableTodaySection(
+          venues: state.todayVenues,
+          onVenueTap: _openVenueDetail,
+          onTimeSlotTap: _openTimeSlotBooking,
+          onViewAllTap: _openSearch,
+        ),
+        if (state.todayVenues.isNotEmpty) Gap(24.h),
+        HomeCollectionsSection(
+          onCollectionTap: (collection) {},
+          onViewAllTap: () {},
+        ),
+        Gap(24.h),
+
+        // Yaqin atrofda
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              AppStrings.nearMe,
+              style: GoogleFonts.unbounded(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF161616),
+              ),
+            ),
+            GestureDetector(
+              onTap: _openSearch,
+              child: Text(
+                AppStrings.viewAll,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFFB12A0B),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Gap(14.h),
+
+        if (state.errorMessage != null)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.h),
+            child: Center(
+              child: Text(
+                state.errorMessage!,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          )
+        else if (state.venues.isEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 24.h),
+            child: Center(
+              child: Text(
+                AppStrings.noData,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 500;
+              if (isWide) {
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14.w,
+                    mainAxisSpacing: 14.h,
+                    childAspectRatio: 0.72,
+                  ),
+                  itemCount: state.venues.length,
+                  itemBuilder: (context, index) {
+                    final venue = state.venues[index];
+                    final isFavorite = AppSession.favorites.isFavorite(venue.id);
+                    return VenueCardWidget(
+                      venue: venue,
+                      isFavorite: isFavorite,
+                      onTap: () => _openVenueDetail(venue),
+                      onTimeSlotTap: (time) => _openTimeSlotBooking(venue, time),
+                      onFavoriteTap: () => _toggleFavorite(venue.id),
+                    );
+                  },
+                );
+              }
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: state.venues.length,
+                separatorBuilder: (context, index) => Gap(14.h),
+                itemBuilder: (context, index) {
+                  final venue = state.venues[index];
+                  final isFavorite = AppSession.favorites.isFavorite(venue.id);
+                  return VenueCardWidget(
+                    venue: venue,
+                    isFavorite: isFavorite,
+                    onTap: () => _openVenueDetail(venue),
+                    onTimeSlotTap: (time) => _openTimeSlotBooking(venue, time),
+                    onFavoriteTap: () => _toggleFavorite(venue.id),
+                  );
+                },
+              );
+            },
+          ),
+
+        Gap(120.h),
+      ],
     );
   }
 }

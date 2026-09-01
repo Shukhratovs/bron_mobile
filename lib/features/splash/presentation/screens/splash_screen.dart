@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/network/app_session.dart';
 import '../../../../core/widgets/bron_logo.dart';
+import '../../../main/presentation/screens/main_navigation_screen.dart';
 import '../../../onboarding/presentation/screens/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -89,10 +91,18 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _handleNavigation() async {
     widget.onInitialization?.call();
 
-    await Future.delayed(widget.duration);
+    final delay = Future.delayed(widget.duration);
+    final isLoggedIn = AppSession.authLocalStorage.isLoggedIn;
+    final hasSeenOnboarding = await AppSession.hasSeenOnboarding();
+    await delay;
     if (!mounted) return;
 
-    final targetScreen = widget.nextScreen ?? const OnboardingScreen();
+    // Mehmon kirmasdan ham katalogni ko'ra oladi (auth kerak emas) — onboarding
+    // faqat qurilmada birinchi marta, token bo'lmaganda ko'rsatiladi.
+    final targetScreen = widget.nextScreen ??
+        (isLoggedIn || hasSeenOnboarding
+            ? const MainNavigationScreen()
+            : const OnboardingScreen());
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
