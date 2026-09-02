@@ -21,6 +21,8 @@ class ApiEndpoints {
 
   // Notifications
   static const String notifications = '$baseUrl/api/v1/me/notifications';
+  static String notificationRead(String id) => '$baseUrl/api/v1/me/notifications/$id/read';
+  static const String notificationsReadAll = '$baseUrl/api/v1/me/notifications/read';
 
   // Venues
   static const String venues = '$baseUrl/api/v1/venues';

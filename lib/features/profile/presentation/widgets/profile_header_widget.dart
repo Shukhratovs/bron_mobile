@@ -32,10 +32,13 @@ class ProfileHeaderWidget extends StatelessWidget {
               color: AppColors.primarySoft,
               shape: BoxShape.circle,
             ),
-            child: AppIcon(
-              AppAssets.iconUser3Line,
-              size: 30.r,
-              color: AppColors.primary,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: AppIcon(
+                AppAssets.iconUser3Line,
+                size: 30.r,
+                color: AppColors.primary,
+              ),
             ),
           ),
           Gap(14.w),

@@ -50,7 +50,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     switch (result) {
       case Success(:final data):
         setState(() {
-          _notifications = data;
+          _notifications = data.items.cast<NotificationItemEntity>();
           _isLoading = false;
         });
       case Failure():
@@ -61,26 +61,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  void _markAllAsRead() {
-    setState(() {
-      _notifications = _notifications.map((n) {
-        return NotificationItemEntity(
-          id: n.id,
-          title: n.title,
-          message: n.message,
-          time: n.time,
-          type: n.type,
-          isRead: true,
-        );
-      }).toList();
-    });
+  Future<void> _markAllAsRead() async {
+    await _repository.markAllNotificationsRead();
+    if (!mounted) return;
+    await _loadNotifications();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Barcha bildirishnomalar o\'qildi deb belgilandi'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.markAllAsRead),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+    if (diff.inMinutes < 1) return 'Hozir';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
+    if (diff.inHours < 24) return '${diff.inHours} soat';
+    if (diff.inDays < 7) return '${diff.inDays} kun';
+    return '${dateTime.day}.${dateTime.month.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -164,7 +167,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final Color iconColor;
     final Color iconBg;
 
-    switch (item.type) {
+    switch (item.notificationType) {
       case NotificationType.booking:
         icon = Icons.calendar_month_outlined;
         iconColor = const Color(0xFFE53935);
@@ -180,12 +183,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         iconBg = const Color(0xFFF3F4F6);
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        if (!item.isRead) {
+          _repository.markNotificationRead(item.id);
+          _loadNotifications();
+        }
+      },
+      child: Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: item.isRead ? Colors.white : const Color(0xFFFFF8F8),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: const Color(0xFFECEFF3)),
+        border: Border.all(color: item.isRead ? const Color(0xFFECEFF3) : const Color(0xFFE53935).withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +228,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ),
                     Text(
-                      item.time,
+                      _formatTime(item.createdAt),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w400,
@@ -242,6 +252,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }

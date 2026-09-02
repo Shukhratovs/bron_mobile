@@ -40,7 +40,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         limit: 20,
       ),
       venueRepository.getVenues(
-        kind: 'restoran',
+        kind: kind ?? 'restoran',
         date: dateParam,
         guests: 2,
         limit: 6,

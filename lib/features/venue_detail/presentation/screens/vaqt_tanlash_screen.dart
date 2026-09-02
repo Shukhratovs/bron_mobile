@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/auth_guard.dart';
@@ -115,7 +118,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
         });
       case Failure(:final exception):
         setState(() {
-          _errorMessage = exception.code == 'venue_not_found' ? 'Muassasa topilmadi' : exception.message;
+          _errorMessage = exception.code == 'venue_not_found' ? AppStrings.venueNotFound : exception.message;
           _isLoadingSlots = false;
         });
     }
@@ -238,6 +241,12 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) => _buildBody(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     final slots = _slots;
     final maxSeatsExceeded = slots?.maxSeats != null && _guests > slots!.maxSeats!;
 
@@ -251,7 +260,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Vaqt tanlang',
+          AppStrings.selectTime,
           style: GoogleFonts.unbounded(fontSize: 16.sp, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         ),
         centerTitle: true,
@@ -272,7 +281,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'QAYSI KUN',
+                  AppStrings.whichDay,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w700,
@@ -283,7 +292,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
                 GestureDetector(
                   onTap: _pickFromCalendar,
                   child: Text(
-                    'Taqvim',
+                    AppStrings.calendar,
                     style: GoogleFonts.plusJakartaSans(fontSize: 12.5.sp, fontWeight: FontWeight.w600, color: AppColors.primary),
                   ),
                 ),
@@ -362,7 +371,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
             // Zone chips (faqat slotlar kelgach — zones shu javobdan keladi)
             if (slots != null && slots.zones.isNotEmpty) ...[
               Text(
-                'QAYSI JOYDA',
+                AppStrings.whichZone,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.sp,
                   fontWeight: FontWeight.w700,
@@ -375,7 +384,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _zoneChip(null, 'Farqi yo\'q'),
+                    _zoneChip(null, AppStrings.anyZone),
                     ...([...slots.zones]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
                         .map((z) => _zoneChip(z.id, z.name)),
                   ],
@@ -386,7 +395,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
 
             // Guest count
             Text(
-              'MEHMONLAR SONI',
+              AppStrings.guestCount,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w700,
@@ -429,7 +438,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
 
             // Slots
             Text(
-              'BO\'SH VAQTLAR',
+              AppStrings.freeSlots,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w700,
@@ -451,7 +460,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
                     Gap(8.w),
                     Expanded(
                       child: Text(
-                        'Bu vaqtlarda depozit kartada bloklanadi${slots.deposit.amount != null ? ' — ${formatSom(slots.deposit.amount!)}' : ''}',
+                        '${AppStrings.depositBlocked}${slots.deposit.amount != null ? ' — ${formatSom(slots.deposit.amount!)}' : ''}',
                         style: GoogleFonts.plusJakartaSans(fontSize: 12.sp, color: AppColors.primary),
                       ),
                     ),
@@ -463,8 +472,8 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
             Gap(20.h),
             AppButton.primary(
               text: _selectedTime != null
-                  ? '${formatDateShort(_selectedDate)} $_selectedTime • $_guests kishi - davom etish'
-                  : 'Vaqtni tanlang',
+                  ? '${formatDateShort(_selectedDate)} $_selectedTime • $_guests ${AppStrings.persons} - ${AppStrings.continueBooking}'
+                  : AppStrings.selectTimeSlot,
               isLoading: _isSubmitting,
               onPressed: _selectedTime == null || maxSeatsExceeded ? null : () => _confirmBooking(),
             ),
@@ -496,16 +505,16 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
     final slots = _slots;
     if (slots == null) return const SizedBox.shrink();
     if (slots.closed) {
-      return _infoBox('Bu kuni yopiq', Icons.event_busy_outlined);
+      return _infoBox(AppStrings.closedToday, Icons.event_busy_outlined);
     }
     if (maxSeatsExceeded) {
       return _infoBox(
-        'Eng katta stol — ${slots.maxSeats} kishi · katta kompaniya uchun zal bor',
+        '${AppStrings.maxTableSeats} — ${slots.maxSeats} ${AppStrings.persons}',
         Icons.groups_outlined,
       );
     }
     if (slots.slots.isEmpty) {
-      return _infoBox('Bo\'sh vaqt yo\'q', Icons.schedule_outlined);
+      return _infoBox(AppStrings.noFreeSlots, Icons.schedule_outlined);
     }
     return Wrap(
       spacing: 8.w,
@@ -595,8 +604,8 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
   }
 
   String _dayLabel(DateTime date, int index) {
-    if (index == 0) return 'Bugun';
-    if (index == 1) return 'Erta';
+    if (index == 0) return AppStrings.today;
+    if (index == 1) return AppStrings.tomorrow;
     return weekdayShort(date);
   }
 

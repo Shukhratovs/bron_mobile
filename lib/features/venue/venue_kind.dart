@@ -1,24 +1,24 @@
+import '../../core/constants/app_strings.dart';
+
 /// `kind` — backend enum: `restoran · geym_klub · sartaroshxona · gozallik_saloni`.
-/// Faqat `restoran` to'liq ishlaydi (`00-boshlash.md` §4) — qolganlari
-/// vertikal chiplarida ko'rinadi, lekin natija bermaydi.
 String venueKindLabel(String kind) {
   switch (kind) {
     case 'restoran':
-      return 'Restoran';
+      return AppStrings.categoryRestoran;
     case 'geym_klub':
-      return 'Geym klub';
+      return AppStrings.categoryGeymKlub;
     case 'sartaroshxona':
-      return 'Sartaroshxona';
+      return AppStrings.categorySartaroshxona;
     case 'gozallik_saloni':
-      return 'Go\'zallik saloni';
+      return AppStrings.categoryGozallikSaloni;
     default:
       return kind;
   }
 }
 
-const List<(String, String)> venueKindOptions = [
-  ('restoran', 'Restoran'),
-  ('geym_klub', 'Geym klub'),
-  ('sartaroshxona', 'Sartaroshxona'),
-  ('gozallik_saloni', 'Go\'zallik saloni'),
+List<(String, String)> get venueKindOptions => [
+  ('restoran', AppStrings.categoryRestoran),
+  ('geym_klub', AppStrings.categoryGeymKlub),
+  ('sartaroshxona', AppStrings.categorySartaroshxona),
+  ('gozallik_saloni', AppStrings.categoryGozallikSaloni),
 ];

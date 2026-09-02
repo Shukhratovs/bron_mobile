@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
@@ -72,6 +75,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -83,7 +88,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         ),
         centerTitle: true,
         title: Text(
-          'Sharhlar',
+          AppStrings.reviews,
           style: GoogleFonts.unbounded(fontSize: 16.sp, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         ),
       ),
@@ -102,7 +107,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                         _buildSummaryCard(),
                         Gap(24.h),
                         Text(
-                          'Foydalanuvchilar fikri',
+                          AppStrings.userReviews,
                           style: GoogleFonts.unbounded(fontSize: 15.sp, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                         ),
                         Gap(12.h),
@@ -111,7 +116,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                             padding: EdgeInsets.symmetric(vertical: 32.h),
                             child: Center(
                               child: Text(
-                                'Hali sharhlar yo\'q',
+                                AppStrings.noReviewsYet,
                                 style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, color: AppColors.textSecondary),
                               ),
                             ),
@@ -129,6 +134,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   ),
                 ),
     );
+      },
+    );
   }
 
   Widget _buildError() {
@@ -142,7 +149,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             Gap(12.h),
             Text(_errorMessage!, textAlign: TextAlign.center, style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, color: AppColors.textSecondary)),
             Gap(16.h),
-            TextButton(onPressed: _load, child: const Text('Qayta urinish')),
+            TextButton(onPressed: _load, child: Text(AppStrings.retry)),
           ],
         ),
       ),
@@ -173,7 +180,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               Text(avg.toStringAsFixed(1), style: GoogleFonts.unbounded(fontSize: 36.sp, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
               Row(children: List.generate(5, (i) => AppIcon(AppAssets.iconStar, size: 16.r, color: Colors.amber))),
               Gap(4.h),
-              Text('$total sharh', style: GoogleFonts.plusJakartaSans(fontSize: 11.5.sp, color: AppColors.textSecondary)),
+              Text('$total ${AppStrings.reviewCount}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5.sp, color: AppColors.textSecondary)),
             ],
           ),
           Gap(20.w),
@@ -245,7 +252,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Muassasa javobi', style: GoogleFonts.plusJakartaSans(fontSize: 11.sp, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                  Text(AppStrings.venueReply, style: GoogleFonts.plusJakartaSans(fontSize: 11.sp, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
                   Gap(4.h),
                   Text(review.replyText!, style: GoogleFonts.plusJakartaSans(fontSize: 12.5.sp, color: const Color(0xFF374151), height: 1.4)),
                 ],

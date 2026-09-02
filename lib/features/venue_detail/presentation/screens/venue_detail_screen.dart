@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
@@ -139,12 +142,18 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
     final text = '${venue.name}${venue.address != null ? ' • ${venue.address}' : ''}';
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Havola nusxalandi')),
+      SnackBar(content: Text(AppStrings.linkCopied)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) => _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: Colors.white,
@@ -165,12 +174,12 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                 AppIcon(AppAssets.iconErrorWarningLine, size: 56.r, color: AppColors.textMuted),
                 Gap(12.h),
                 Text(
-                  _errorMessage ?? 'Muassasa topilmadi',
+                  _errorMessage ?? AppStrings.venueNotFound,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, color: AppColors.textSecondary),
                 ),
                 Gap(16.h),
-                AppButton.primary(text: 'Qayta urinish', onPressed: _load),
+                AppButton.primary(text: AppStrings.retry, onPressed: _load),
               ],
             ),
           ),
@@ -324,7 +333,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                         Gap(6.h),
                         _buildSvgTextRow(
                           AppAssets.iconWallet3Line,
-                          '~${formatSom(venue.avgCheck!)} / kishi',
+                          '~${formatSom(venue.avgCheck!)} / ${AppStrings.perPerson}',
                         ),
                       ],
                       Gap(16.h),
@@ -348,7 +357,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                'Mashhur taomlar',
+                                AppStrings.popularDishes,
                                 style: GoogleFonts.unbounded(
                                   fontSize: 15.sp,
                                   fontWeight: FontWeight.w700,
@@ -359,7 +368,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                             GestureDetector(
                               onTap: _openFullMenu,
                               child: Text(
-                                'To\'liq menyu >',
+                                '${AppStrings.fullMenu} >',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12.5.sp,
                                   fontWeight: FontWeight.w600,
@@ -436,7 +445,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                'Sharhlar',
+                                AppStrings.reviews,
                                 style: GoogleFonts.unbounded(
                                   fontSize: 15.sp,
                                   fontWeight: FontWeight.w700,
@@ -447,7 +456,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                             GestureDetector(
                               onTap: _openReviews,
                               child: Text(
-                                'Barchasi >',
+                                '${AppStrings.viewAll} >',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12.5.sp,
                                   fontWeight: FontWeight.w600,
@@ -544,7 +553,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
               child: SafeArea(
                 top: false,
                 child: AppButton.primary(
-                  text: 'Bron qilish',
+                  text: AppStrings.bookNow,
                   onPressed: _openBookingFlow,
                 ),
               ),

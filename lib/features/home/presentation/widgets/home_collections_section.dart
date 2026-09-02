@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/constants/app_strings.dart';
 
 class CollectionItem {
   final String id;
@@ -60,7 +61,7 @@ class HomeCollectionsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'To\'plamlar',
+              AppStrings.collections,
               style: GoogleFonts.unbounded(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -70,7 +71,7 @@ class HomeCollectionsSection extends StatelessWidget {
             GestureDetector(
               onTap: onViewAllTap,
               child: Text(
-                'Barchasi',
+                AppStrings.viewAll,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,

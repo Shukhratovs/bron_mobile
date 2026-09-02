@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
 import 'time_slot_chip.dart';
@@ -34,7 +35,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Bugun bo\'sh joylar',
+                AppStrings.availableToday,
                 style: GoogleFonts.unbounded(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
@@ -45,7 +46,7 @@ class HomeAvailableTodaySection extends StatelessWidget {
             GestureDetector(
               onTap: onViewAllTap,
               child: Text(
-                'Barchasi',
+                AppStrings.viewAll,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,

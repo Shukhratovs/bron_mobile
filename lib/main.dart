@@ -10,6 +10,10 @@ import 'features/splash/presentation/screens/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppSession.init();
+  // TODO: Firebase push notification — keyinroq yoqish:
+  // await Firebase.initializeApp();
+  // FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  // await PushNotificationService.instance.init();
 
   final languageCubit = LanguageCubit();
   await languageCubit.init();

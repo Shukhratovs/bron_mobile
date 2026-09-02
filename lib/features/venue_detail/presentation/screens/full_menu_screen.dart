@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
@@ -82,6 +85,8 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -95,7 +100,7 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
         title: Column(
           children: [
             Text(
-              'To\'liq menyu',
+              AppStrings.fullMenu,
               style: GoogleFonts.unbounded(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w700,
@@ -114,6 +119,8 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
       ),
       body: _buildBody(),
     );
+      },
+    );
   }
 
   Widget _buildBody() {
@@ -123,7 +130,7 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
     if (_errorMessage != null || _menu == null) {
       return Center(
         child: Text(
-          _errorMessage ?? 'Menyu topilmadi',
+          _errorMessage ?? AppStrings.menuNotFound,
           style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary),
         ),
       );
@@ -148,7 +155,7 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
             separatorBuilder: (context, index) => Gap(8.w),
             itemBuilder: (context, index) {
               final id = index == 0 ? _allCategoryId : categories[index - 1].id;
-              final label = index == 0 ? 'Hammasi' : categories[index - 1].name;
+              final label = index == 0 ? AppStrings.menuAll : categories[index - 1].name;
               final isSelected = id == _selectedCategoryId;
 
               return Center(
@@ -192,7 +199,7 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
           child: filteredItems.isEmpty
               ? Center(
                   child: Text(
-                    'Bu bo\'limda taom yo\'q',
+                    AppStrings.menuEmptySection,
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary),
                   ),
                 )

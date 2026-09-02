@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/auth_guard.dart';
@@ -87,9 +90,9 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
     switch (result) {
       case Success():
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Navbatga yozildingiz — stol bo\'shashi bilan xabar beramiz'),
-            backgroundColor: Color(0xFF12B76A),
+          SnackBar(
+            content: Text(AppStrings.waitlistSuccess),
+            backgroundColor: const Color(0xFF12B76A),
           ),
         );
         Navigator.pushAndRemoveUntil(
@@ -99,8 +102,8 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
         );
       case Failure(:final exception):
         final message = switch (exception.code) {
-          'already_in_waitlist' => 'Siz allaqachon shu joyning navbatidasiz',
-          'party_too_large' => 'Kompaniyangiz eng katta stoldan katta',
+          'already_in_waitlist' => AppStrings.alreadyInWaitlist,
+          'party_too_large' => AppStrings.partyTooLarge,
           _ => exception.message,
         };
         ScaffoldMessenger.of(context).showSnackBar(
@@ -111,6 +114,8 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -121,7 +126,7 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Navbatga yozilish',
+          AppStrings.waitlistTitle,
           style: GoogleFonts.unbounded(fontSize: 16.sp, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         ),
         centerTitle: true,
@@ -137,12 +142,12 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
             ),
             Gap(4.h),
             Text(
-              '${widget.guests} kishi',
+              '${widget.guests} ${AppStrings.persons}',
               style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary),
             ),
             Gap(24.h),
             Text(
-              'QANDAY VAQT MOS KELADI',
+              AppStrings.whatTimeSuits,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w700,
@@ -155,7 +160,7 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
             Gap(8.h),
             _intervalTile(_Interval.twoHour, '${_hhmm(widget.initialDate)}–${_hhmm(widget.initialDate.add(const Duration(hours: 2)))}'),
             Gap(8.h),
-            _intervalTile(_Interval.anytime, 'Istalgan vaqt'),
+            _intervalTile(_Interval.anytime, AppStrings.anyTime),
             const Spacer(),
             Container(
               padding: EdgeInsets.all(12.w),
@@ -164,15 +169,17 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Text(
-                'Istalgan payt navbatdan chiqishingiz mumkin.',
+                AppStrings.waitlistNote,
                 style: GoogleFonts.plusJakartaSans(fontSize: 12.5.sp, color: AppColors.primary),
               ),
             ),
             Gap(16.h),
-            AppButton.primary(text: 'Navbatga yozilish', isLoading: _isLoading, onPressed: _submit),
+            AppButton.primary(text: AppStrings.joinWaitlist, isLoading: _isLoading, onPressed: _submit),
           ],
         ),
       ),
+    );
+      },
     );
   }
 
