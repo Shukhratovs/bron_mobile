@@ -1,4 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/api_endpoints.dart';
+import '../services/push_notification_service.dart';
 import 'api_client.dart';
 import 'auth_local_storage.dart';
 import 'favorites_local_storage.dart';
@@ -15,6 +17,7 @@ class AppSession {
   static late final AuthLocalStorage authLocalStorage;
   static late final ApiClient apiClient;
   static late final FavoritesLocalStorage favorites;
+  static late final PushNotificationService pushService;
   static bool _initialized = false;
 
   static Future<void> init() async {
@@ -22,6 +25,11 @@ class AppSession {
     authLocalStorage = await AuthLocalStorageImpl.create();
     apiClient = StandardApiClient(authLocalStorage: authLocalStorage);
     favorites = await FavoritesLocalStorage.getInstance();
+    pushService = PushNotificationService(
+      apiClient: apiClient,
+      devicesEndpoint: ApiEndpoints.devices,
+      isLoggedIn: () => authLocalStorage.isLoggedIn,
+    );
     _initialized = true;
   }
 

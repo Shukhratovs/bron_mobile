@@ -155,7 +155,7 @@ class _StaffNavbatScreenState extends State<StaffNavbatScreen> {
   Future<void> _seatPrompt(WaitlistEntity entry) async {
     final today = DateTime.now();
     final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    List<Map<String, dynamic>> tables;
+    List<ZalTable> tables;
     try {
       tables = await _zalDataSource.getAvailability(date: dateStr, guests: entry.guests);
     } catch (_) {
@@ -185,9 +185,9 @@ class _StaffNavbatScreenState extends State<StaffNavbatScreen> {
                 ...tables.map((t) => ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const AppIcon(AppAssets.iconTableLine, color: AppColors.primary),
-                      title: Text('Stol ${t['number'] ?? t['id']}'),
-                      subtitle: t['seats'] != null ? Text('${t['seats']} o\'rin') : null,
-                      onTap: () => Navigator.pop(context, t['id']?.toString()),
+                      title: Text('Stol ${t.number}'),
+                      subtitle: Text('${t.seats} o\'rin'),
+                      onTap: () => Navigator.pop(context, t.id),
                     )),
             ],
           ),

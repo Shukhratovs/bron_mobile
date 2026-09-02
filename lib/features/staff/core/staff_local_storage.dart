@@ -15,6 +15,7 @@ class StaffLocalStorage implements AuthLocalStorage {
   static const _keyOrganizationId = 'staff_organization_id';
   static const _keyVenueId = 'staff_venue_id';
   static const _keySelectedVenueId = 'staff_selected_venue_id';
+  static const _keySelectedVenueName = 'staff_selected_venue_name';
 
   final SharedPreferences _prefs;
   final ValueNotifier<bool> _authStateNotifier;
@@ -65,9 +66,11 @@ class StaffLocalStorage implements AuthLocalStorage {
   String? get organizationId => _prefs.getString(_keyOrganizationId);
 
   String? get selectedVenueId => _prefs.getString(_keySelectedVenueId);
+  String? get selectedVenueName => _prefs.getString(_keySelectedVenueName);
 
-  Future<void> setSelectedVenueId(String venueId) async {
+  Future<void> setSelectedVenueId(String venueId, {String? venueName}) async {
     await _prefs.setString(_keySelectedVenueId, venueId);
+    if (venueName != null) await _prefs.setString(_keySelectedVenueName, venueName);
   }
 
   @override
@@ -91,6 +94,7 @@ class StaffLocalStorage implements AuthLocalStorage {
     await _prefs.remove(_keyOrganizationId);
     await _prefs.remove(_keyVenueId);
     await _prefs.remove(_keySelectedVenueId);
+    await _prefs.remove(_keySelectedVenueName);
     _authStateNotifier.value = false;
   }
 }

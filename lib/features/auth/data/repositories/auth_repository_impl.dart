@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/auth_local_storage.dart';
 import '../../../../core/network/network_exceptions.dart';
-import '../../domain/entities/auth_token_entity.dart';
+import '../../domain/entities/telegram_login_entity.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
-import '../models/telegram_auth_request_model.dart';
+import '../models/auth_token_model.dart';
 import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -25,18 +25,32 @@ class AuthRepositoryImpl implements AuthRepository {
   ValueListenable<bool> get authStateListenable => authLocalStorage.authStateListenable;
 
   @override
-  Future<ApiResult<AuthTokenEntity>> loginWithTelegram(TelegramAuthRequestModel request) async {
+  Future<ApiResult<TelegramLoginStart>> startTelegramLogin() async {
     try {
-      final tokenModel = await remoteDataSource.loginWithTelegram(request);
-      await authLocalStorage.saveAuthToken(
-        accessToken: tokenModel.accessToken,
-        tokenType: tokenModel.tokenType,
-        expiresIn: tokenModel.expiresIn,
-      );
-      if (tokenModel.user is UserModel) {
-        await authLocalStorage.saveUser((tokenModel.user as UserModel).toJson());
+      return Success(await remoteDataSource.startTelegramLogin());
+    } on NetworkException catch (e) {
+      return Failure(e);
+    } catch (e) {
+      return Failure(NetworkException(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<ApiResult<TelegramLoginPollResult>> pollTelegramLogin(String nonce) async {
+    try {
+      final result = await remoteDataSource.pollTelegramLogin(nonce);
+      final tokenModel = result.token;
+      if (result.status == TelegramLoginPollStatus.success && tokenModel is AuthTokenModel) {
+        await authLocalStorage.saveAuthToken(
+          accessToken: tokenModel.accessToken,
+          tokenType: tokenModel.tokenType,
+          expiresIn: tokenModel.expiresIn,
+        );
+        if (tokenModel.user is UserModel) {
+          await authLocalStorage.saveUser((tokenModel.user as UserModel).toJson());
+        }
       }
-      return Success(tokenModel);
+      return Success(result);
     } on NetworkException catch (e) {
       return Failure(e);
     } catch (e) {

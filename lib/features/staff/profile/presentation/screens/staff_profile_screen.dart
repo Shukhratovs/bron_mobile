@@ -39,6 +39,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
   Future<void> _logout() async {
     final storage = StaffSession.localStorage;
+    await StaffSession.pushService.unregisterToken();
     await storage.clear();
     if (!mounted) return;
     Navigator.pushReplacement(

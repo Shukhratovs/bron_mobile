@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/widgets/glass_liquid_bottom_nav_bar.dart';
 import '../../../bookings/presentation/screens/bugun_screen.dart';
-import '../../../profile/presentation/screens/staff_profile_screen.dart';
+import '../../../bookings/presentation/screens/qr_scan_screen.dart';
+import '../../../shift/presentation/screens/staff_shift_summary_screen.dart';
 import '../../../waitlist/presentation/screens/staff_navbat_screen.dart';
 import '../../../zal/presentation/screens/staff_zal_screen.dart';
+import '../widgets/staff_bottom_nav.dart';
 
-/// Xostes ilovasining asosiy qobig'i — Bugun / Zal / Navbat / Profil.
+/// Xostes ilovasining asosiy qobig'i — Bugun / Zal / Navbat / Yakun,
+/// markazda Skaner FAB (Figma: i8FGYLF28h8GYXQgd1Pczf, "Navigatsiya").
+/// Profil bu panelda yo'q — har ekran sarlavhasidagi avatar orqali ochiladi.
 /// Planshet (1194x834) va telefon (402x874) uchun API bir xil, faqat
-/// joylashuv farq qiladi (01-kirish.md) — keng ekranda ikki panelli
-/// joylashuv qo'shilishi mumkin, hozircha bitta ustunli maket ishlatiladi.
+/// joylashuv farq qiladi (01-kirish.md) — hozircha bitta ustunli maket.
 class StaffMainScreen extends StatefulWidget {
   const StaffMainScreen({super.key});
 
@@ -23,8 +25,12 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
     BugunScreen(),
     StaffZalScreen(),
     StaffNavbatScreen(),
-    StaffProfileScreen(),
+    StaffShiftSummaryScreen(),
   ];
+
+  void _openScanner() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const QrScanScreen()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,15 +38,10 @@ class _StaffMainScreenState extends State<StaffMainScreen> {
       extendBody: true,
       backgroundColor: Colors.white,
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: GlassLiquidBottomNavBar(
+      bottomNavigationBar: StaffBottomNav(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
-        items: const [
-          GlassNavItem(label: 'Bugun', icon: Icons.today_rounded, activeIcon: Icons.today_rounded),
-          GlassNavItem(label: 'Zal', icon: Icons.table_bar_outlined, activeIcon: Icons.table_bar_rounded),
-          GlassNavItem(label: 'Navbat', icon: Icons.groups_outlined, activeIcon: Icons.groups_rounded),
-          GlassNavItem(label: 'Profil', icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded),
-        ],
+        onScanTap: _openScanner,
       ),
     );
   }

@@ -75,6 +75,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     await profileRepository.logout();
+    await AppSession.pushService.unregisterToken();
     await AppSession.authLocalStorage.clear();
     emit(const ProfileState(
       status: ProfileStatus.loggedOut,

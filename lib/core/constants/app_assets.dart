@@ -23,6 +23,12 @@ abstract class AppAssets {
   static const String navProfile = '$_navIconsPath/profile.svg';
   static const String navProfileSelected = '$_navIconsPath/profile_selected.svg';
 
+  // Xostes — pastki navigatsiya (Figma: i8FGYLF28h8GYXQgd1Pczf)
+  static const String navStaffBugun = '$_navIconsPath/staff-bugun-icon.svg';
+  static const String navStaffZal = '$_navIconsPath/staff-zal-icon.svg';
+  static const String navStaffNavbat = '$_navIconsPath/staff-navbat-icon.svg';
+  static const String navStaffYakun = '$_navIconsPath/staff-yakun-icon.svg';
+
   // ==========================================
   // MAIN / FEATURE ICONS (SVG)
   // ==========================================
@@ -97,6 +103,9 @@ abstract class AppAssets {
   static const String iconSmartphoneLine = '$_iconsPath/smartphone-line.svg';
   static const String iconUserSearchLine = '$_iconsPath/user-search-line.svg';
   static const String iconWallet3Line = '$_iconsPath/wallet-3-line.svg';
+  static const String iconCheckDoubleLine = '$_iconsPath/check-double-line.svg';
+  static const String iconTimerLine = '$_iconsPath/timer-line.svg';
+  static const String iconLayoutGridLine = '$_iconsPath/layout-grid-line.svg';
   static const String iconMap2Line = '$_iconsPath/map-2-line.svg';
   static const String iconLockLine = '$_iconsPath/lock-line.svg';
   static const String iconFireLine = '$_iconsPath/fire-line.svg';

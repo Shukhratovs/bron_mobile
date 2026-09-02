@@ -6,8 +6,9 @@ class ApiEndpoints {
   // Health check
   static const String health = '$baseUrl/health';
 
-  // Client Auth
-  static const String telegramAuth = '$baseUrl/api/v1/auth/telegram';
+  // Client Auth — Telegram bot (00-boshlash.md, mijoz/00-kirish-va-profil.md)
+  static const String telegramAuthStart = '$baseUrl/api/v1/auth/telegram/start';
+  static String telegramAuthStatus(String nonce) => '$baseUrl/api/v1/auth/telegram/status/$nonce';
   static const String logout = '$baseUrl/api/v1/auth/logout';
 
   // Client Profile & Devices
@@ -51,6 +52,7 @@ class ApiEndpoints {
   static String staffAuthTelegramStatus(String nonce) => '$baseUrl/api/v1/staff/auth/telegram/status/$nonce';
   static const String staffVenues = '$baseUrl/api/v1/staff/venues';
   static const String staffMe = '$baseUrl/api/v1/staff/me';
+  static const String staffDevices = '$baseUrl/api/v1/staff/devices';
 
   // Xostes — Bugun, bron detali, QR (02-bugun-va-qr.md)
   static const String staffBookings = '$baseUrl/api/v1/staff/bookings';
@@ -64,6 +66,9 @@ class ApiEndpoints {
   static const String staffBookingScan = '$baseUrl/api/v1/staff/bookings/scan';
   static const String staffZal = '$baseUrl/api/v1/staff/zal';
   static const String staffZalAvailability = '$baseUrl/api/v1/staff/zal/availability';
+
+  // Xostes — Smena yakuni (04-smena-yakuni.md)
+  static const String staffShiftSummary = '$baseUrl/api/v1/staff/shift/summary';
 
   // Xostes — Navbat (03-navbat.md)
   static const String staffWaitlist = '$baseUrl/api/v1/staff/waitlist';

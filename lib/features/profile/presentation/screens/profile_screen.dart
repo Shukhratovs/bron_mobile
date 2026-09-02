@@ -435,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  Gap(100.h),
+                  Gap(100.h + MediaQuery.of(context).padding.bottom),
                 ],
               ),
             ),

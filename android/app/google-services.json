@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "549457015694",
+    "project_id": "e-bron",
+    "storage_bucket": "e-bron.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549457015694:android:c8b27fb527471d5cefeadf",
+        "android_client_info": {
+          "package_name": "bron.mobile.uz.bron_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYP2cFWNEnT__ZpTTDASBY5tGqlq4idP8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

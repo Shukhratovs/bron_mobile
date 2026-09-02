@@ -289,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const VenueCardSkeleton(),
           Gap(14.h),
           const VenueCardSkeleton(),
-          Gap(120.h),
+          Gap(120.h + MediaQuery.of(context).padding.bottom),
         ],
       ),
     );
@@ -460,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
 
-        Gap(120.h),
+        Gap(120.h + MediaQuery.of(context).padding.bottom),
       ],
     );
   }

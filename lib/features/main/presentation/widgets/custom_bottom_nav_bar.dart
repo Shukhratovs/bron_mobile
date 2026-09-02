@@ -122,9 +122,14 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final navItems = CustomBottomNavBar.items;
+    // Ba'zi Android qurilmalarida tizim navigatsiya paneli (3 tugmali yoki
+    // gesture bar) qattiq `24.h`dan balandroq bo'ladi va bu suzuvchi panelni
+    // o'ziga bosib qo'yadi — shuning uchun haqiqiy tizim inseti qo'shiladi,
+    // panel har doim navigatsiyadan butunlay yuqorida turadi.
+    final systemNavInset = MediaQuery.of(context).padding.bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
+      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h + systemNavInset),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(40.r),
         child: BackdropFilter(
