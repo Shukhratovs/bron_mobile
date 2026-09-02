@@ -424,8 +424,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onTap: _onLogout,
                       ),
                     ),
-                  Gap(20.h),
-
                   // Version
                   Center(
                     child: Text(
@@ -437,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  Gap(32.h),
+                  Gap(100.h),
                 ],
               ),
             ),

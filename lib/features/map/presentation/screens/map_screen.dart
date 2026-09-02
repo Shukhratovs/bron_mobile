@@ -1,14 +1,19 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:latlong2/latlong.dart' hide Path;
+import 'package:yandex_mapkit/yandex_mapkit.dart';
+
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/widgets/bron_logo.dart';
 import '../../../profile/presentation/screens/notifications_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
@@ -19,8 +24,6 @@ import '../../../venue/domain/entities/venue_entity.dart';
 import '../../../venue/domain/repositories/venue_repository.dart';
 import '../../../venue/venue_kind.dart';
 import '../../../venue_detail/presentation/screens/venue_detail_screen.dart';
-import '../../../../core/widgets/app_icon.dart';
-import '../../../../core/constants/app_assets.dart';
 
 class MapScreen extends StatefulWidget {
   final VenueRepository? repository;
@@ -33,33 +36,161 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late final VenueRepository _repository;
-  late final MapController _mapController;
   late final PageController _pageController;
+  YandexMapController? _mapController;
 
   List<VenueMapPin> _pins = [];
   final Map<String, VenueEntity> _detailCache = {};
   int _selectedVenueIndex = 0;
   bool _isLoading = true;
+  bool _mapReady = false;
+  bool _mapError = false;
   String? _selectedKind;
 
-  static const _fallbackCenter = LatLng(41.314581, 69.237562);
+  // Pin image caches
+  Uint8List? _pinNormal;
+  Uint8List? _pinSelected;
+  Uint8List? _userLocationIcon;
+
+  // Tashkent center
+  static const _fallbackCenter = Point(latitude: 41.314581, longitude: 69.237562);
 
   @override
   void initState() {
     super.initState();
     _repository = widget.repository ??
         VenueRepositoryImpl(remoteDataSource: VenueRemoteDataSourceImpl(apiClient: AppSession.apiClient));
-    _mapController = MapController();
     _pageController = PageController(viewportFraction: 0.62);
+    _preparePinImages();
     _loadPins();
+    // Delay map creation slightly to avoid OpenGL init crash
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _mapReady = true);
+    });
   }
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _mapController?.dispose();
     _pageController.dispose();
     super.dispose();
   }
+
+  // ─── Pin image generation ──────────────────────────────────────────
+
+  Future<void> _preparePinImages() async {
+    _pinNormal = await _renderPinImage(false);
+    _pinSelected = await _renderPinImage(true);
+    _userLocationIcon = await _renderUserDot();
+    if (mounted) setState(() {});
+  }
+
+  Future<Uint8List> _renderPinImage(bool isSelected) async {
+    final double circleSize = isSelected ? 52.0 : 40.0;
+    final double totalW = circleSize;
+    final double triangleH = 8.0;
+    final double totalH = circleSize + triangleH;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, totalW, totalH));
+
+    // Shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawCircle(Offset(totalW / 2, circleSize / 2 + 2), circleSize / 2 - 2, shadowPaint);
+
+    // Circle fill
+    final fillPaint = Paint()..color = isSelected ? const Color(0xFFDC3009) : Colors.white;
+    canvas.drawCircle(Offset(totalW / 2, circleSize / 2), circleSize / 2 - 1, fillPaint);
+
+    // Circle border
+    final borderPaint = Paint()
+      ..color = isSelected ? Colors.white : const Color(0xFFDC3009)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isSelected ? 3.0 : 2.5;
+    canvas.drawCircle(Offset(totalW / 2, circleSize / 2), circleSize / 2 - 2, borderPaint);
+
+    // "B" text
+    final textColor = isSelected ? Colors.white : const Color(0xFFDC3009);
+    final fontSize = isSelected ? 22.0 : 17.0;
+    final paragraphBuilder = ui.ParagraphBuilder(ui.ParagraphStyle(
+      textAlign: TextAlign.center,
+      fontSize: fontSize,
+      fontWeight: FontWeight.w800,
+    ))
+      ..pushStyle(ui.TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: fontSize))
+      ..addText('B');
+    final paragraph = paragraphBuilder.build()..layout(ui.ParagraphConstraints(width: totalW));
+    canvas.drawParagraph(paragraph, Offset(0, (circleSize - paragraph.height) / 2));
+
+    // Triangle pointer
+    final triPaint = Paint()..color = const Color(0xFFDC3009);
+    final triPath = Path()
+      ..moveTo(totalW / 2 - 6, circleSize - 2)
+      ..lineTo(totalW / 2 + 6, circleSize - 2)
+      ..lineTo(totalW / 2, circleSize + triangleH - 1)
+      ..close();
+    canvas.drawPath(triPath, triPaint);
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(totalW.toInt(), totalH.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
+  Future<Uint8List> _renderUserDot() async {
+    const double size = 32.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, size, size));
+
+    // Outer glow
+    final glowPaint = Paint()..color = const Color(0xFFDC3009).withValues(alpha: 0.2);
+    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, glowPaint);
+
+    // White ring
+    final whitePaint = Paint()..color = Colors.white;
+    canvas.drawCircle(const Offset(size / 2, size / 2), 8, whitePaint);
+
+    // Blue dot
+    final dotPaint = Paint()..color = const Color(0xFFDC3009);
+    canvas.drawCircle(const Offset(size / 2, size / 2), 6, dotPaint);
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
+  // ─── Location ──────────────────────────────────────────────────────
+
+  Future<void> _goToUserLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return;
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+
+      _mapController?.moveCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: Point(latitude: position.latitude, longitude: position.longitude),
+            zoom: 15.5,
+          ),
+        ),
+        animation: const MapAnimation(type: MapAnimationType.smooth, duration: 0.8),
+      );
+    } catch (_) {
+      // Location unavailable — stay at current position
+    }
+  }
+
+  // ─── Data loading ──────────────────────────────────────────────────
 
   Future<void> _loadPins() async {
     setState(() => _isLoading = true);
@@ -74,7 +205,12 @@ class _MapScreenState extends State<MapScreen> {
         });
         if (data.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _mapController.move(LatLng(data.first.lat, data.first.lon), 15.5);
+            _mapController?.moveCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(target: Point(latitude: data.first.lat, longitude: data.first.lon), zoom: 15.5),
+              ),
+              animation: const MapAnimation(type: MapAnimationType.smooth, duration: 0.5),
+            );
           });
           _ensureDetail(data.first.id);
         }
@@ -92,12 +228,19 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // ─── Interactions ──────────────────────────────────────────────────
+
   void _onVenueSelected(int index) {
     if (_selectedVenueIndex != index) {
       HapticFeedback.selectionClick();
       setState(() => _selectedVenueIndex = index);
       _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
-      _mapController.move(LatLng(_pins[index].lat, _pins[index].lon), 15.5);
+      _mapController?.moveCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: Point(latitude: _pins[index].lat, longitude: _pins[index].lon), zoom: 15.5),
+        ),
+        animation: const MapAnimation(type: MapAnimationType.smooth, duration: 0.4),
+      );
       _ensureDetail(_pins[index].id);
     }
   }
@@ -106,7 +249,12 @@ class _MapScreenState extends State<MapScreen> {
     if (_selectedVenueIndex != index) {
       HapticFeedback.selectionClick();
       setState(() => _selectedVenueIndex = index);
-      _mapController.move(LatLng(_pins[index].lat, _pins[index].lon), 15.5);
+      _mapController?.moveCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: Point(latitude: _pins[index].lat, longitude: _pins[index].lon), zoom: 15.5),
+        ),
+        animation: const MapAnimation(type: MapAnimationType.smooth, duration: 0.4),
+      );
       _ensureDetail(_pins[index].id);
     }
   }
@@ -193,47 +341,124 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  // ─── Map objects ───────────────────────────────────────────────────
+
+  List<MapObject> get _mapObjects {
+    if (_pinNormal == null || _pinSelected == null) return [];
+
+    return _pins.asMap().entries.map((entry) {
+      final index = entry.key;
+      final pin = entry.value;
+      final isSelected = index == _selectedVenueIndex;
+
+      return PlacemarkMapObject(
+        mapId: MapObjectId('venue_${pin.id}'),
+        point: Point(latitude: pin.lat, longitude: pin.lon),
+        opacity: 1.0,
+        icon: PlacemarkIcon.single(
+          PlacemarkIconStyle(
+            image: BitmapDescriptor.fromBytes(isSelected ? _pinSelected! : _pinNormal!),
+            scale: isSelected ? 1.0 : 0.85,
+            anchor: const Offset(0.5, 1.0),
+          ),
+        ),
+        zIndex: isSelected ? 10 : 1,
+        onTap: (_, __) => _onVenueSelected(index),
+      );
+    }).toList();
+  }
+
+  // ─── Build ─────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1E2024),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _pins.isNotEmpty ? LatLng(_pins.first.lat, _pins.first.lon) : _fallbackCenter,
-              initialZoom: 15.5,
-              minZoom: 12.0,
-              maxZoom: 18.0,
-              interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                userAgentPackageName: 'com.bron.bron_mobile',
-                maxZoom: 18,
-              ),
-              MarkerLayer(
-                markers: List.generate(_pins.length, (index) {
-                  final pin = _pins[index];
-                  final isSelected = index == _selectedVenueIndex;
-                  return Marker(
-                    point: LatLng(pin.lat, pin.lon),
-                    width: isSelected ? 52.r : 44.r,
-                    height: isSelected ? 60.r : 50.r,
-                    child: _BronMapPin(isSelected: isSelected, onTap: () => _onVenueSelected(index)),
-                  );
-                }),
-              ),
-            ],
-          ),
+          // Yandex Map
+          if (_mapReady && !_mapError)
+            YandexMap(
+              mapType: MapType.vector,
+              logoPadding: const MapPadding(horizontal: 80, vertical: 100),
+              onMapCreated: (controller) {
+                _mapController = controller;
 
-          if (_isLoading)
+                // Enable user location layer
+                try {
+                  controller.toggleUserLayer(
+                    visible: true,
+                    autoZoomEnabled: false,
+                  );
+                } catch (_) {}
+
+                // Move to Tashkent initially, then try user location
+                controller.moveCamera(
+                  CameraUpdate.newCameraPosition(
+                    CameraPosition(target: _fallbackCenter, zoom: 13.0),
+                  ),
+                );
+
+                // Try to move to user location
+                _goToUserLocation();
+              },
+              mapObjects: _mapObjects,
+              onUserLocationAdded: (view) async {
+                if (_userLocationIcon != null) {
+                  return view.copyWith(
+                    pin: view.pin.copyWith(
+                      icon: PlacemarkIcon.single(
+                        PlacemarkIconStyle(
+                          image: BitmapDescriptor.fromBytes(_userLocationIcon!),
+                          scale: 1.0,
+                        ),
+                      ),
+                    ),
+                    arrow: view.arrow.copyWith(
+                      icon: PlacemarkIcon.single(
+                        PlacemarkIconStyle(
+                          image: BitmapDescriptor.fromBytes(_userLocationIcon!),
+                          scale: 1.0,
+                        ),
+                      ),
+                    ),
+                    accuracyCircle: view.accuracyCircle.copyWith(
+                      fillColor: const Color(0xFFDC3009).withValues(alpha: 0.1),
+                      strokeColor: const Color(0xFFDC3009).withValues(alpha: 0.3),
+                      strokeWidth: 1,
+                    ),
+                  );
+                }
+                return view;
+              },
+            )
+          else if (_mapError)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.map_outlined, size: 56.r, color: const Color(0xFF9CA3AF)),
+                  Gap(12.h),
+                  Text(
+                    'Xarita yuklanmadi',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF6B7280)),
+                  ),
+                  Gap(8.h),
+                  TextButton(
+                    onPressed: () => setState(() { _mapError = false; _mapReady = true; }),
+                    child: const Text('Qayta urinish'),
+                  ),
+                ],
+              ),
+            )
+          else
             const Center(child: CircularProgressIndicator(color: AppColors.primary)),
 
-          // 2. Floating Top Header Capsule
+          // Loading indicator
+          if (_isLoading && _mapReady)
+            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+
+          // Floating top header capsule
           Positioned(
             top: 0,
             left: 0,
@@ -253,11 +478,17 @@ class _MapScreenState extends State<MapScreen> {
                   BronLogo(width: 84.w, height: 32.h, isDarkText: true),
                   Row(
                     children: [
-                      _buildHeaderIconButton(icon: Icons.search_rounded, onTap: _openSearch),
+                      _HeaderIconButton(
+                        icon: AppAssets.iconSearch2Line,
+                        onTap: _openSearch,
+                      ),
                       Gap(8.w),
                       Stack(
                         children: [
-                          _buildHeaderIconButton(icon: Icons.tune_rounded, onTap: _showFilterModal),
+                          _HeaderIconButton(
+                            icon: AppAssets.iconEqualizer2Line,
+                            onTap: _showFilterModal,
+                          ),
                           if (_selectedKind != null)
                             Positioned(
                               right: 8.w,
@@ -271,7 +502,10 @@ class _MapScreenState extends State<MapScreen> {
                         ],
                       ),
                       Gap(8.w),
-                      _buildHeaderIconButton(icon: Icons.notifications_none_rounded, onTap: _openNotifications),
+                      _HeaderIconButton(
+                        icon: AppAssets.iconNotification3Line,
+                        onTap: _openNotifications,
+                      ),
                     ],
                   ),
                 ],
@@ -279,7 +513,28 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // 3. Bottom Floating Venue Cards Carousel
+          // My location FAB
+          Positioned(
+            right: 16.w,
+            bottom: 290.h,
+            child: GestureDetector(
+              onTap: _goToUserLocation,
+              child: Container(
+                width: 44.r,
+                height: 44.r,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 3)),
+                  ],
+                ),
+                child: Icon(Icons.my_location_rounded, size: 22.r, color: const Color(0xFF181A20)),
+              ),
+            ),
+          ),
+
+          // Bottom venue cards carousel
           if (_pins.isNotEmpty)
             Positioned(
               left: 0,
@@ -324,15 +579,9 @@ class _MapScreenState extends State<MapScreen> {
                                     ? Image.network(
                                         detail!.photoUrl!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          color: const Color(0xFFF3F4F6),
-                                          child: const AppIcon(AppAssets.iconRestaurant, color: Color(0xFF9CA3AF)),
-                                        ),
+                                        errorBuilder: (_, _, _) => _venueImagePlaceholder(),
                                       )
-                                    : Container(
-                                        color: const Color(0xFFF3F4F6),
-                                        child: const AppIcon(AppAssets.iconRestaurant, color: Color(0xFF9CA3AF)),
-                                      ),
+                                    : _venueImagePlaceholder(),
                               ),
                               Padding(
                                 padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 6.h),
@@ -345,7 +594,11 @@ class _MapScreenState extends State<MapScreen> {
                                         Expanded(
                                           child: Text(
                                             pin.name,
-                                            style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20)),
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF181A20),
+                                            ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -357,7 +610,11 @@ class _MapScreenState extends State<MapScreen> {
                                               Gap(2.w),
                                               Text(
                                                 pin.rating!.toStringAsFixed(1),
-                                                style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20)),
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 13.sp,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: const Color(0xFF181A20),
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -390,84 +647,34 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildHeaderIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _venueImagePlaceholder() {
+    return Container(
+      color: const Color(0xFFF3F4F6),
+      child: const Center(child: AppIcon(AppAssets.iconRestaurant, color: Color(0xFF9CA3AF))),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  final String icon;
+  final VoidCallback onTap;
+
+  const _HeaderIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20.r),
       child: Container(
         width: 40.w,
         height: 40.h,
-        decoration: const BoxDecoration(color: Color(0xFFF9FAFB), borderRadius: BorderRadius.all(Radius.circular(16))),
-        child: Icon(icon, size: 20.r, color: const Color(0xFF181A20)),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Center(child: AppIcon(icon, size: 20.r, color: const Color(0xFF181A20))),
       ),
     );
   }
-}
-
-class _BronMapPin extends StatelessWidget {
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  const _BronMapPin({
-    required this.isSelected,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final pinSize = isSelected ? 44.r : 34.r;
-    final pinBgColor = isSelected ? const Color(0xFFDC3009) : Colors.white;
-    final textColor = isSelected ? Colors.white : const Color(0xFFDC3009);
-    final borderColor = isSelected ? Colors.white : const Color(0xFFDC3009);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: pinSize,
-            height: pinSize,
-            decoration: BoxDecoration(
-              color: pinBgColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: borderColor, width: isSelected ? 2.5.w : 2.0.w),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3)),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                'B',
-                style: GoogleFonts.unbounded(fontSize: isSelected ? 17.sp : 13.sp, fontWeight: FontWeight.w800, color: textColor),
-              ),
-            ),
-          ),
-          ClipPath(
-            clipper: _TriangleClipper(),
-            child: Container(
-              width: isSelected ? 10.w : 8.w,
-              height: isSelected ? 6.h : 5.h,
-              color: const Color(0xFFDC3009),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TriangleClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.moveTo(0, 0);
-    path.lineTo(size.width, 0);
-    path.lineTo(size.width / 2, size.height);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

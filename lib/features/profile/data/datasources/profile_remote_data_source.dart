@@ -2,7 +2,6 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/network/api_client.dart';
 import '../../domain/entities/bonus_history_entity.dart';
-import '../../domain/entities/notification_item_entity.dart';
 import '../models/bonus_history_model.dart';
 import '../models/favorite_place_model.dart';
 import '../models/notification_item_model.dart';
@@ -12,7 +11,9 @@ abstract class ProfileRemoteDataSource {
   Future<UserProfileModel> getUserProfile();
   Future<UserProfileModel> updateProfile(UserProfileModel profile);
   Future<List<FavoritePlaceModel>> getFavoritePlaces();
-  Future<List<NotificationItemModel>> getNotifications();
+  Future<NotificationListResponse> getNotifications({int limit = 20, int offset = 0, bool unreadOnly = false});
+  Future<void> markNotificationRead(String id);
+  Future<void> markAllNotificationsRead();
   Future<List<BonusHistoryModel>> getBonusHistory();
   Future<bool> submitPartnerApplication({
     required String businessName,
@@ -82,44 +83,20 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<List<NotificationItemModel>> getNotifications() async {
-    try {
-      final response = await apiClient.get(ApiEndpoints.notifications);
-      if (response is Map && response['items'] is List) {
-        return (response['items'] as List)
-            .map((item) => NotificationItemModel.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
-    } catch (_) {
-      // Fallback
-    }
+  Future<NotificationListResponse> getNotifications({int limit = 20, int offset = 0, bool unreadOnly = false}) async {
+    final url = '${ApiEndpoints.notifications}?limit=$limit&offset=$offset&unread_only=$unreadOnly';
+    final response = await apiClient.get(url);
+    return NotificationListResponse.fromJson((response as Map).cast<String, dynamic>());
+  }
 
-    return const [
-      NotificationItemModel(
-        id: 'notif-1',
-        title: 'Bron tasdiqlandi!',
-        message: 'Osteria Da Vinci restoraniga 19:00 ga qilgan broningiz muvaffaqiyatli tasdiqlandi.',
-        time: '5 daqiqa oldin',
-        type: NotificationType.booking,
-        isRead: false,
-      ),
-      NotificationItemModel(
-        id: 'notif-2',
-        title: 'Keshbek hisobingizga tushdi',
-        message: 'Besh Qozon tashrifi uchun +15 000 so\'m bonus balansingizga qo\'shildi.',
-        time: 'Kecha, 21:30',
-        type: NotificationType.bonus,
-        isRead: true,
-      ),
-      NotificationItemModel(
-        id: 'notif-3',
-        title: 'Yangi aksiya!',
-        message: 'Barcha geym klublarida dushanba kunlari 20% chegirma.',
-        time: '2 kun oldin',
-        type: NotificationType.promo,
-        isRead: true,
-      ),
-    ];
+  @override
+  Future<void> markNotificationRead(String id) async {
+    await apiClient.post(ApiEndpoints.notificationRead(id));
+  }
+
+  @override
+  Future<void> markAllNotificationsRead() async {
+    await apiClient.post(ApiEndpoints.notificationsReadAll);
   }
 
   @override

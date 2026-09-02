@@ -20,61 +20,52 @@ class HomeBannerWidget extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        height: 84.h,
+        height: 76.h,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.r),
+          color: const Color(0xFF1E110A),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Background image
+            // Fon rasmi
             if (banner.imagePath != null)
               Image.asset(
                 banner.imagePath!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
-                    Container(color: const Color(0xFF2C1810)),
+                const SizedBox.shrink(),
               ),
-            // Subtle overlay for text readability
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.4),
-                    Colors.black.withValues(alpha: 0.1),
-                  ],
-                ),
-              ),
-            ),
-            // Content
+
+            // Kontent
             Padding(
-              padding: EdgeInsets.fromLTRB(14.w, 14.h, 16.w, 14.h),
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
               child: Row(
                 children: [
-                  // Discount badge
+                  // Chegirma bloki (-20%)
                   Container(
                     width: 56.r,
                     height: 56.r,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12.r),
+                      color: const Color(0xFF382922),
+                      borderRadius: BorderRadius.circular(14.r),
                     ),
                     child: Center(
                       child: Text(
                         banner.discount,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 20.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFFFFF2EF),
+                          color: const Color(0xFFFAF0E6),
+                          letterSpacing: -0.5,
                         ),
                       ),
                     ),
                   ),
-                  Gap(14.w),
-                  // Text
+                  Gap(12.w),
+
+                  // Matnlar
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,19 +76,22 @@ class HomeBannerWidget extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 17.sp,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white,
+                            height: 1.1,
                           ),
                         ),
-                        Gap(3.h),
+                        Gap(4.h),
                         Text(
                           banner.subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14.sp,
-                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFFA89A91),
+                            height: 1.1,
                           ),
                         ),
                       ],

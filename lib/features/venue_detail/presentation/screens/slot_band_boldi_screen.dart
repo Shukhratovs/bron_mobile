@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
@@ -29,6 +32,8 @@ class SlotBandBoldiScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(backgroundColor: Colors.white, elevation: 0),
@@ -48,7 +53,7 @@ class SlotBandBoldiScreen extends StatelessWidget {
             ),
             Gap(20.h),
             Text(
-              'Bu vaqt band bo\'ldi',
+              AppStrings.slotTaken,
               style: GoogleFonts.unbounded(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w700,
@@ -57,7 +62,7 @@ class SlotBandBoldiScreen extends StatelessWidget {
             ),
             Gap(8.h),
             Text(
-              '${venue.name} • ${formatDateShort(date)}, $time • $guests kishi uchun joy qolmadi.\nNavbatga yozilsangiz, stol bo\'shashi bilan darhol xabar beramiz.',
+              '${venue.name} • ${formatDateShort(date)}, $time • $guests ${AppStrings.persons}',
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13.5.sp,
@@ -67,7 +72,7 @@ class SlotBandBoldiScreen extends StatelessWidget {
             ),
             Gap(28.h),
             AppButton.primary(
-              text: 'Navbatga yozilish',
+              text: AppStrings.joinWaitlist,
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
@@ -85,7 +90,7 @@ class SlotBandBoldiScreen extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Boshqa vaqt tanlash',
+                AppStrings.chooseAnotherTime,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
@@ -96,6 +101,8 @@ class SlotBandBoldiScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }

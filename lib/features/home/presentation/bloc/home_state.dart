@@ -14,7 +14,7 @@ class HomeState extends Equatable {
     this.status = HomeStatus.initial,
     this.venues = const [],
     this.todayVenues = const [],
-    this.selectedKind,
+    this.selectedKind = 'restoran',
     this.filters = const VenueFilters(),
     this.errorMessage,
   });

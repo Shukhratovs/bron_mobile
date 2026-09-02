@@ -18,8 +18,8 @@ class BannerModel {
   static List<BannerModel> get mockBanners => const [
         BannerModel(
           id: '1',
-          title: 'Tinch va sokin kechki ovqat',
-          subtitle: 'Romantik va sokin muhitdagi restoranlar',
+          title: 'Tinch soatlarda chegirma',
+          subtitle: 'Kapitalbank bilan · 12 ta joy',
           discount: '-20%',
           imagePath: AppAssets.bannerPromo,
         ),

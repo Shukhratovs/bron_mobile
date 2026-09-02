@@ -2,10 +2,10 @@ import '../../../../core/network/api_result.dart';
 import '../../../../core/network/network_exceptions.dart';
 import '../../domain/entities/bonus_history_entity.dart';
 import '../../domain/entities/favorite_place_entity.dart';
-import '../../domain/entities/notification_item_entity.dart';
 import '../../domain/entities/user_profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_remote_data_source.dart';
+import '../models/notification_item_model.dart';
 import '../models/user_profile_model.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
@@ -51,10 +51,34 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<ApiResult<List<NotificationItemEntity>>> getNotifications() async {
+  Future<ApiResult<NotificationListResponse>> getNotifications({int limit = 20, int offset = 0, bool unreadOnly = false}) async {
     try {
-      final notifications = await remoteDataSource.getNotifications();
-      return ApiResult.success(notifications);
+      final response = await remoteDataSource.getNotifications(limit: limit, offset: offset, unreadOnly: unreadOnly);
+      return ApiResult.success(response);
+    } on NetworkException catch (e) {
+      return ApiResult.failure(e);
+    } catch (e) {
+      return ApiResult.failure(NetworkException(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<ApiResult<void>> markNotificationRead(String id) async {
+    try {
+      await remoteDataSource.markNotificationRead(id);
+      return ApiResult.success(null);
+    } on NetworkException catch (e) {
+      return ApiResult.failure(e);
+    } catch (e) {
+      return ApiResult.failure(NetworkException(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<ApiResult<void>> markAllNotificationsRead() async {
+    try {
+      await remoteDataSource.markAllNotificationsRead();
+      return ApiResult.success(null);
     } on NetworkException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {

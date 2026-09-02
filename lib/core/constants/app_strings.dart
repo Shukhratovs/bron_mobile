@@ -175,6 +175,64 @@ class AppStrings {
   static String get viewAll => tr('view_all');
   static String get popularPlaces => tr('popular_places');
   static String get recommended => tr('recommended');
+  static String get availableToday => tr('available_today');
+  static String get collections => tr('collections');
+  static String get deposit => tr('deposit');
+
+  // Categories
+  static String get categoryRestoran => tr('category_restoran');
+  static String get categoryGeymKlub => tr('category_geym_klub');
+  static String get categorySartaroshxona => tr('category_sartaroshxona');
+  static String get categoryGozallikSaloni => tr('category_gozallik_saloni');
+
+  // Venue Detail
+  static String get venueNotFound => tr('venue_not_found');
+  static String get popularDishes => tr('popular_dishes');
+  static String get fullMenu => tr('full_menu');
+  static String get reviews => tr('reviews');
+  static String get linkCopied => tr('link_copied');
+  static String get perPerson => tr('per_person');
+
+  // Time Selection (Vaqt tanlash)
+  static String get selectTime => tr('select_time');
+  static String get whichDay => tr('which_day');
+  static String get calendar => tr('calendar');
+  static String get whichZone => tr('which_zone');
+  static String get anyZone => tr('any_zone');
+  static String get guestCount => tr('guest_count');
+  static String get freeSlots => tr('free_slots');
+  static String get selectTimeSlot => tr('select_time_slot');
+  static String get continueBooking => tr('continue_booking');
+  static String get closedToday => tr('closed_today');
+  static String get noFreeSlots => tr('no_free_slots');
+  static String get maxTableSeats => tr('max_table_seats');
+  static String get depositBlocked => tr('deposit_blocked');
+
+  // Menu
+  static String get menuAll => tr('menu_all');
+  static String get menuNotFound => tr('menu_not_found');
+  static String get menuEmptySection => tr('menu_empty_section');
+
+  // Reviews
+  static String get userReviews => tr('user_reviews');
+  static String get noReviewsYet => tr('no_reviews_yet');
+  static String get reviewCount => tr('review_count');
+  static String get venueReply => tr('venue_reply');
+
+  // Slot unavailable
+  static String get slotTaken => tr('slot_taken');
+  static String get joinWaitlist => tr('join_waitlist');
+  static String get chooseAnotherTime => tr('choose_another_time');
+
+  // Waitlist
+  static String get waitlistTitle => tr('waitlist_title');
+  static String get whatTimeSuits => tr('what_time_suits');
+  static String get anyTime => tr('any_time');
+  static String get waitlistNote => tr('waitlist_note');
+  static String get waitlistSuccess => tr('waitlist_success');
+  static String get alreadyInWaitlist => tr('already_in_waitlist');
+  static String get partyTooLarge => tr('party_too_large');
+  static String get persons => tr('persons');
 
   // Sheets / Confirmation
   static String get logoutConfirmTitle => tr('logout_confirm_title');
@@ -322,6 +380,64 @@ class AppStrings {
       'popular_places': 'Mashhur joylar',
       'recommended': 'Tavsiya etiladi',
       'no_data': 'Ma\'lumot topilmadi',
+      'available_today': 'Bugun bo\'sh joylar',
+      'collections': 'To\'plamlar',
+      'deposit': 'Depozit',
+
+      // Categories
+      'category_restoran': 'Restoran',
+      'category_geym_klub': 'Geym klub',
+      'category_sartaroshxona': 'Sartaroshxona',
+      'category_gozallik_saloni': 'Go\'zallik saloni',
+
+      // Venue Detail
+      'venue_not_found': 'Muassasa topilmadi',
+      'popular_dishes': 'Mashhur taomlar',
+      'full_menu': 'To\'liq menyu',
+      'reviews': 'Sharhlar',
+      'link_copied': 'Havola nusxalandi',
+      'per_person': 'kishi',
+
+      // Time Selection
+      'select_time': 'Vaqt tanlang',
+      'which_day': 'QAYSI KUN',
+      'calendar': 'Taqvim',
+      'which_zone': 'QAYSI JOYDA',
+      'any_zone': 'Farqi yo\'q',
+      'guest_count': 'MEHMONLAR SONI',
+      'free_slots': 'BO\'SH VAQTLAR',
+      'select_time_slot': 'Vaqtni tanlang',
+      'continue_booking': 'davom etish',
+      'closed_today': 'Bu kuni yopiq',
+      'no_free_slots': 'Bo\'sh vaqt yo\'q',
+      'max_table_seats': 'Eng katta stol',
+      'deposit_blocked': 'Bu vaqtlarda depozit kartada bloklanadi',
+
+      // Menu
+      'menu_all': 'Hammasi',
+      'menu_not_found': 'Menyu topilmadi',
+      'menu_empty_section': 'Bu bo\'limda taom yo\'q',
+
+      // Reviews
+      'user_reviews': 'Foydalanuvchilar fikri',
+      'no_reviews_yet': 'Hali sharhlar yo\'q',
+      'review_count': 'sharh',
+      'venue_reply': 'Muassasa javobi',
+
+      // Slot unavailable
+      'slot_taken': 'Bu vaqt band bo\'ldi',
+      'join_waitlist': 'Navbatga yozilish',
+      'choose_another_time': 'Boshqa vaqt tanlash',
+
+      // Waitlist
+      'waitlist_title': 'Navbatga yozilish',
+      'what_time_suits': 'QANDAY VAQT MOS KELADI',
+      'any_time': 'Istalgan vaqt',
+      'waitlist_note': 'Istalgan payt navbatdan chiqishingiz mumkin.',
+      'waitlist_success': 'Navbatga yozildingiz — stol bo\'shashi bilan xabar beramiz',
+      'already_in_waitlist': 'Siz allaqachon shu joyning navbatidasiz',
+      'party_too_large': 'Kompaniyangiz eng katta stoldan katta',
+      'persons': 'kishi',
     },
 
     // --- РУССКИЙ ---
@@ -453,6 +569,64 @@ class AppStrings {
       'popular_places': 'Популярные места',
       'recommended': 'Рекомендуем',
       'no_data': 'Данные не найдены',
+      'available_today': 'Свободные места сегодня',
+      'collections': 'Подборки',
+      'deposit': 'Депозит',
+
+      // Categories
+      'category_restoran': 'Ресторан',
+      'category_geym_klub': 'Гейм клуб',
+      'category_sartaroshxona': 'Барбершоп',
+      'category_gozallik_saloni': 'Салон красоты',
+
+      // Venue Detail
+      'venue_not_found': 'Заведение не найдено',
+      'popular_dishes': 'Популярные блюда',
+      'full_menu': 'Полное меню',
+      'reviews': 'Отзывы',
+      'link_copied': 'Ссылка скопирована',
+      'per_person': 'чел.',
+
+      // Time Selection
+      'select_time': 'Выберите время',
+      'which_day': 'КАКОЙ ДЕНЬ',
+      'calendar': 'Календарь',
+      'which_zone': 'КАКАЯ ЗОНА',
+      'any_zone': 'Без разницы',
+      'guest_count': 'КОЛИЧЕСТВО ГОСТЕЙ',
+      'free_slots': 'СВОБОДНОЕ ВРЕМЯ',
+      'select_time_slot': 'Выберите время',
+      'continue_booking': 'продолжить',
+      'closed_today': 'В этот день закрыто',
+      'no_free_slots': 'Нет свободного времени',
+      'max_table_seats': 'Самый большой стол',
+      'deposit_blocked': 'В это время депозит блокируется на карте',
+
+      // Menu
+      'menu_all': 'Все',
+      'menu_not_found': 'Меню не найдено',
+      'menu_empty_section': 'В этом разделе нет блюд',
+
+      // Reviews
+      'user_reviews': 'Отзывы гостей',
+      'no_reviews_yet': 'Отзывов пока нет',
+      'review_count': 'отзыв',
+      'venue_reply': 'Ответ заведения',
+
+      // Slot unavailable
+      'slot_taken': 'Это время уже занято',
+      'join_waitlist': 'Встать в очередь',
+      'choose_another_time': 'Выбрать другое время',
+
+      // Waitlist
+      'waitlist_title': 'Встать в очередь',
+      'what_time_suits': 'КАКОЕ ВРЕМЯ ПОДХОДИТ',
+      'any_time': 'Любое время',
+      'waitlist_note': 'Вы можете покинуть очередь в любой момент.',
+      'waitlist_success': 'Вы в очереди — уведомим, когда столик освободится',
+      'already_in_waitlist': 'Вы уже в очереди этого заведения',
+      'party_too_large': 'Ваша компания больше самого большого стола',
+      'persons': 'чел.',
     },
 
     // --- ENGLISH ---
@@ -584,6 +758,64 @@ class AppStrings {
       'popular_places': 'Popular places',
       'recommended': 'Recommended',
       'no_data': 'No data found',
+      'available_today': 'Available today',
+      'collections': 'Collections',
+      'deposit': 'Deposit',
+
+      // Categories
+      'category_restoran': 'Restaurant',
+      'category_geym_klub': 'Game club',
+      'category_sartaroshxona': 'Barbershop',
+      'category_gozallik_saloni': 'Beauty salon',
+
+      // Venue Detail
+      'venue_not_found': 'Venue not found',
+      'popular_dishes': 'Popular dishes',
+      'full_menu': 'Full menu',
+      'reviews': 'Reviews',
+      'link_copied': 'Link copied',
+      'per_person': 'person',
+
+      // Time Selection
+      'select_time': 'Select time',
+      'which_day': 'WHICH DAY',
+      'calendar': 'Calendar',
+      'which_zone': 'WHICH ZONE',
+      'any_zone': 'Any zone',
+      'guest_count': 'NUMBER OF GUESTS',
+      'free_slots': 'AVAILABLE SLOTS',
+      'select_time_slot': 'Select a time',
+      'continue_booking': 'continue',
+      'closed_today': 'Closed on this day',
+      'no_free_slots': 'No available slots',
+      'max_table_seats': 'Largest table',
+      'deposit_blocked': 'Deposit will be held on your card for this time',
+
+      // Menu
+      'menu_all': 'All',
+      'menu_not_found': 'Menu not found',
+      'menu_empty_section': 'No items in this section',
+
+      // Reviews
+      'user_reviews': 'Guest reviews',
+      'no_reviews_yet': 'No reviews yet',
+      'review_count': 'review',
+      'venue_reply': 'Venue reply',
+
+      // Slot unavailable
+      'slot_taken': 'This time slot is taken',
+      'join_waitlist': 'Join waitlist',
+      'choose_another_time': 'Choose another time',
+
+      // Waitlist
+      'waitlist_title': 'Join waitlist',
+      'what_time_suits': 'PREFERRED TIME',
+      'any_time': 'Any time',
+      'waitlist_note': 'You can leave the waitlist at any time.',
+      'waitlist_success': 'You\'re on the waitlist — we\'ll notify you when a table opens up',
+      'already_in_waitlist': 'You\'re already on this venue\'s waitlist',
+      'party_too_large': 'Your party exceeds the largest table',
+      'persons': 'guests',
     },
   };
 }

@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
@@ -71,7 +72,7 @@ class VenueCardWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999.r),
                       ),
                       child: Text(
-                        'Depozit',
+                        AppStrings.deposit,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
