@@ -1,3 +1,5 @@
+import '../constants/app_strings.dart';
+
 class NetworkException implements Exception {
   final String message;
   final int? statusCode;
@@ -25,9 +27,11 @@ class ServerException extends NetworkException {
 }
 
 class NoInternetException extends NetworkException {
-  const NoInternetException({
-    super.message = 'Internet aloqasi mavjud emas',
-  });
+  // `super.message`ga const default berib bo'lmaydi — `AppStrings.tr()`
+  // joriy tilga bog'liq va compile-time constant emas. Shuning uchun
+  // konstruktor tanasida hisoblanadi (istisno chindan uloqtirilganda,
+  // joriy til bilan).
+  NoInternetException({String? message}) : super(message: message ?? AppStrings.noInternetTitle);
 }
 
 class UnauthorizedException extends NetworkException {

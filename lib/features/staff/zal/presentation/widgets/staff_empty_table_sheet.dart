@@ -13,6 +13,7 @@ import '../../../bookings/presentation/screens/staff_booking_detail_screen.dart'
 import '../../../core/staff_session.dart';
 import '../../../waitlist/presentation/screens/staff_navbat_screen.dart';
 import '../../data/datasources/staff_zal_remote_data_source.dart';
+import '../../../../../core/widgets/app_toast.dart';
 
 /// "Bo'sh stol" varag'i — Figma i8FGYLF28h8GYXQgd1Pczf, node 788:1138.
 /// Uchta amal: ko'chadan joylashtirish (`POST /staff/bookings` +
@@ -77,7 +78,7 @@ class _StaffEmptyTableSheetState extends State<StaffEmptyTableSheet> {
     if (createResult case Failure(:final exception)) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+      AppToast.error(context, exception.message);
       return;
     }
     final booking = (createResult as Success).data;
@@ -144,7 +145,7 @@ class _StaffEmptyTableSheetState extends State<StaffEmptyTableSheet> {
         widget.onChanged();
         Navigator.push(context, MaterialPageRoute(builder: (context) => StaffBookingDetailScreen(bookingId: data.id)));
       case Failure(:final exception):
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+        AppToast.error(context, exception.message);
     }
   }
 

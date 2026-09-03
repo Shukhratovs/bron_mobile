@@ -23,6 +23,7 @@ class AuthLocalStorageImpl implements AuthLocalStorage {
   static const String _keyTokenType = 'auth_token_type';
   static const String _keyExpiresIn = 'auth_expires_in';
   static const String _keyUserData = 'auth_user_data';
+  static const String _keyLocalAvatarPath = 'local_avatar_path';
 
   final SharedPreferences _prefs;
   final ValueNotifier<bool> _authStateNotifier;
@@ -89,6 +90,24 @@ class AuthLocalStorageImpl implements AuthLocalStorage {
     await _prefs.remove(_keyTokenType);
     await _prefs.remove(_keyExpiresIn);
     await _prefs.remove(_keyUserData);
+    await _prefs.remove(_keyLocalAvatarPath);
     _authStateNotifier.value = false;
   }
+
+  /// Profil rasmi uchun backend'da maydon/endpoint yo'q (tekshirildi —
+  /// `UserOut`/`UserUpdate` sxemalarida `avatar`/`photo` maydoni yo'q),
+  /// shuning uchun qurilmada tanlangan rasm faqat mahalliy saqlanadi:
+  /// fayl ilova hujjatlar papkasiga nusxalanadi, shu YO'L esa shu yerda
+  /// SharedPreferences'ga yoziladi. `clear()` (chiqish) bilan birga
+  /// o'chadi — boshqa foydalanuvchi shu qurilmada kirsa eskisi
+  /// ko'rinmasin.
+  Future<void> saveLocalAvatarPath(String path) async {
+    await _prefs.setString(_keyLocalAvatarPath, path);
+  }
+
+  Future<void> clearLocalAvatarPath() async {
+    await _prefs.remove(_keyLocalAvatarPath);
+  }
+
+  String? get localAvatarPath => _prefs.getString(_keyLocalAvatarPath);
 }

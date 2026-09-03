@@ -10,6 +10,7 @@ import '../../../waitlist/domain/repositories/waitlist_repository.dart';
 import 'booking_detail_screen.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 /// Figma: `Stol bo'shadi` (`211:1481`) — mijoz/05-navbat.md §4.
 /// `status: chaqirilgan` bo'lganda 10 daqiqalik tasdiqlash oynasi.
@@ -83,9 +84,7 @@ class _StolBoshadiScreenState extends State<StolBoshadiScreen> {
           'not_called' => 'Siz hali chaqirilmadingiz',
           _ => exception.message,
         };
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: AppColors.error),
-        );
+        AppToast.error(context, message);
         if (exception.code == 'confirm_expired') Navigator.pop(context);
     }
   }

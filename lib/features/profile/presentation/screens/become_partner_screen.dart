@@ -12,6 +12,26 @@ import '../../../../core/network/api_result.dart';
 import '../../../../core/utils/uz_phone_formatter.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
+import '../../../../core/widgets/app_toast.dart';
+
+enum _PartnerCategory {
+  restaurant('restoran'),
+  gameClub('geym_klub'),
+  barbershop('sartaroshxona'),
+  beauty('gozallik'),
+  other('boshqa');
+
+  final String apiValue;
+  const _PartnerCategory(this.apiValue);
+
+  String get label => switch (this) {
+        _PartnerCategory.restaurant => AppStrings.categoryRestoran,
+        _PartnerCategory.gameClub => AppStrings.categoryGeymKlub,
+        _PartnerCategory.barbershop => AppStrings.categorySartaroshxona,
+        _PartnerCategory.beauty => AppStrings.categoryGozallikSaloni,
+        _PartnerCategory.other => AppStrings.categoryOther,
+      };
+}
 
 class BecomePartnerScreen extends StatefulWidget {
   final ProfileRepository repository;
@@ -31,19 +51,23 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
-  String _selectedCategory = 'Restoran';
+  // Til bo'yicha ko'rsatiladigan matndan mustaqil, barqaror tanlov —
+  // til o'zgarganda ham tanlov saqlanib qoladi (avval `_selectedCategory`
+  // to'g'ridan-to'g'ri ko'rinadigan matnni saqlar edi, til almashtirilsa
+  // taqqoslash buzilardi).
+  _PartnerCategory _selectedCategory = _PartnerCategory.restaurant;
   bool _isSubmitting = false;
 
-  final List<String> _row1Categories = [
-    'Restoran',
-    'Geym klub',
-    'Sartaroshxona',
-  ];
+  List<_PartnerCategory> get _row1Categories => const [
+        _PartnerCategory.restaurant,
+        _PartnerCategory.gameClub,
+        _PartnerCategory.barbershop,
+      ];
 
-  final List<String> _row2Categories = [
-    'Go\'zallik',
-    'Boshqa',
-  ];
+  List<_PartnerCategory> get _row2Categories => const [
+        _PartnerCategory.beauty,
+        _PartnerCategory.other,
+      ];
 
   @override
   void dispose() {
@@ -62,20 +86,13 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
     _unfocus();
 
     if (_businessNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Iltimos, biznes nomini kiriting'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppToast.warning(context, AppStrings.enterBusinessNameError);
       return;
     }
 
     final phone = uzPhoneToE164(_phoneController.text.trim());
     if (phone == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Telefon raqamini to\'liq kiriting')),
-      );
+      AppToast.warning(context, AppStrings.enterFullPhoneError);
       return;
     }
 
@@ -83,7 +100,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
 
     final result = await widget.repository.submitPartnerApplication(
       businessName: _businessNameController.text.trim(),
-      category: _selectedCategory,
+      category: _selectedCategory.apiValue,
       contactPerson: _nameController.text.trim().isNotEmpty
           ? _nameController.text.trim()
           : 'Aziz Karimov',
@@ -118,7 +135,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                   ),
                   Gap(16.h),
                   Text(
-                    'Ariza qabul qilindi!',
+                    AppStrings.applicationAcceptedTitle,
                     style: GoogleFonts.unbounded(
                       fontSize: 17.sp,
                       fontWeight: FontWeight.w700,
@@ -127,7 +144,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                   ),
                   Gap(8.h),
                   Text(
-                    'Menejerimiz tez orada siz bilan bog\'lanadi va tizimga ulanishda yordam beradi.',
+                    AppStrings.applicationAcceptedDesc,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5.sp,
@@ -151,7 +168,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                         ),
                       ),
                       child: Text(
-                        'Tushunarli',
+                        AppStrings.gotIt,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 15.sp,
                           fontWeight: FontWeight.w700,
@@ -166,9 +183,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
           ),
         );
       case Failure(:final exception):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(exception.message), backgroundColor: AppColors.error),
-        );
+        AppToast.error(context, exception.message);
     }
   }
 
@@ -235,7 +250,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
 
                               // Title: "Biznesingizni Bron'ga ulang"
                               Text(
-                                'Biznesingizni Bron\'ga ulang',
+                                AppStrings.partnerConnectTitle,
                                 style: GoogleFonts.unbounded(
                                   fontSize: 22.sp,
                                   fontWeight: FontWeight.w700,
@@ -248,7 +263,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
 
                               // Subtitle
                               Text(
-                                'Mijozlar sizni bir tegishda band qiladi,\nqo\'ng\'iroqsiz, navbatsiz.',
+                                AppStrings.partnerConnectSubtitle,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13.5.sp,
                                   fontWeight: FontWeight.w400,
@@ -296,20 +311,20 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                               children: [
                                 _buildBenefitItem(
                                   icon: Icons.event_available_outlined,
-                                  title: 'Bo\'sh vaqtlarni to\'ldiring',
-                                  subtitle: 'Mijoz real bo\'sh slotni ko\'radi va darhol band qiladi',
+                                  title: AppStrings.benefitFillSlotsTitle,
+                                  subtitle: AppStrings.benefitFillSlotsSubtitle,
                                 ),
                                 Gap(14.h),
                                 _buildBenefitItem(
                                   icon: Icons.person_outline_rounded,
-                                  title: 'No-show kamayadi',
-                                  subtitle: 'Depozit va eslatmalar kelmaslikni qisqartiradi',
+                                  title: AppStrings.benefitNoShowTitle,
+                                  subtitle: AppStrings.benefitNoShowSubtitle,
                                 ),
                                 Gap(14.h),
                                 _buildBenefitItem(
                                   icon: Icons.credit_card_outlined,
-                                  title: 'To\'lov faqat natijaga',
-                                  subtitle: 'Mehmon kelgani uchun komissiya — oylik to\'lov yo\'q',
+                                  title: AppStrings.benefitPayOnResultTitle,
+                                  subtitle: AppStrings.benefitPayOnResultSubtitle,
                                 ),
                               ],
                             ),
@@ -318,7 +333,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
 
                           // ARIZA Header
                           Text(
-                            'ARIZA',
+                            AppStrings.applicationSectionHeader,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
@@ -341,27 +356,27 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // 1. Ismingiz
-                                _buildInputLabel('Ismingiz'),
+                                _buildInputLabel(AppStrings.yourNameLabel),
                                 Gap(6.h),
                                 _buildTextInput(
                                   controller: _nameController,
-                                  hintText: 'Masalan: Aziz Karimov',
+                                  hintText: AppStrings.yourNameHint,
                                   prefixIcon: Icons.person_outline_rounded,
                                 ),
                                 Gap(16.h),
 
                                 // 2. Biznes nomi
-                                _buildInputLabel('Biznes nomi'),
+                                _buildInputLabel(AppStrings.businessName),
                                 Gap(6.h),
                                 _buildTextInput(
                                   controller: _businessNameController,
-                                  hintText: 'Masalan: Osteria Da Vinci',
+                                  hintText: AppStrings.businessNameHint,
                                   prefixIcon: Icons.storefront_outlined,
                                 ),
                                 Gap(16.h),
 
                                 // 3. Yo'nalish
-                                _buildInputLabel('Yo\'nalish'),
+                                _buildInputLabel(AppStrings.categoryLabel),
                                 Gap(8.h),
                                 Row(
                                   children: _row1Categories.map((cat) {
@@ -393,22 +408,17 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                                 Gap(16.h),
 
                                 // 4. Manzil
-                                _buildInputLabel('Manzil'),
+                                _buildInputLabel(AppStrings.addressLabel),
                                 Gap(6.h),
                                 _buildTextInput(
                                   controller: _addressController,
-                                  hintText: 'Masalan: Bunyodkor ko\'chasi 12',
+                                  hintText: AppStrings.addressHint,
                                   prefixIcon: Icons.location_on_outlined,
                                 ),
                                 Gap(8.h),
                                 GestureDetector(
                                   onTap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Xaritadan joy tanlash ochilmoqda...'),
-                                        backgroundColor: AppColors.primary,
-                                      ),
-                                    );
+                                    AppToast.info(context, AppStrings.mapPickerOpening);
                                   },
                                   child: Row(
                                     children: [
@@ -419,7 +429,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                                       ),
                                       Gap(6.w),
                                       Text(
-                                        'Xaritada nuqta belgilash',
+                                        AppStrings.pickOnMapLabel,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 13.sp,
                                           fontWeight: FontWeight.w600,
@@ -432,7 +442,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                                 Gap(16.h),
 
                                 // 5. Telefon
-                                _buildInputLabel('Telefon'),
+                                _buildInputLabel(AppStrings.phoneLabel),
                                 Gap(6.h),
                                 Container(
                                   height: 50.h,
@@ -562,7 +572,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
                     ),
                     Gap(8.h),
                     Text(
-                      'Menejerimiz bir ish kuni ichida bog\'lanadi',
+                      AppStrings.managerContactNote,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.sp,
@@ -582,7 +592,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
     );
   }
 
-  Widget _buildCategoryChip(String cat) {
+  Widget _buildCategoryChip(_PartnerCategory cat) {
     final isSelected = _selectedCategory == cat;
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = cat),
@@ -598,7 +608,7 @@ class _BecomePartnerScreenState extends State<BecomePartnerScreen> {
         ),
         child: Center(
           child: Text(
-            cat,
+            cat.label,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13.sp,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

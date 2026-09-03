@@ -7,6 +7,7 @@ import 'core/language/language_cubit.dart';
 import 'core/network/app_session.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/system_nav.dart';
 import 'core/constants/app_strings.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'firebase_options.dart';
@@ -46,6 +47,17 @@ class MyApp extends StatelessWidget {
                 themeMode: ThemeMode.light,
                 darkTheme: AppTheme.darkTheme,
                 theme: AppTheme.lightTheme,
+                // 3 tugmali Android navigatsiyasida butun ilova tizim
+                // paneli ustiga chiqib ketmasligi uchun yuqoriga suriladi.
+                // Imo-ishora (gesture) navigatsiyada bo'sh joy kichik
+                // bo'lgani uchun bu shart emas — floating panellar (pastki
+                // navigatsiya) o'zining oddiy sobit bo'shlig'i bilan
+                // yetarli.
+                builder: (context, navigatorChild) => SafeArea(
+                  top: false,
+                  bottom: isThreeButtonAndroidNav(context),
+                  child: navigatorChild ?? const SizedBox.shrink(),
+                ),
                 home: child,
               );
             },

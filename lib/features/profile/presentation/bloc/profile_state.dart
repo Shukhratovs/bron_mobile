@@ -20,7 +20,7 @@ class ProfileState extends Equatable {
   bool get isLoggedIn => user != null;
 
   String get cardSubtitle {
-    if (cards.isEmpty) return 'Karta qo\'shilmagan';
+    if (cards.isEmpty) return AppStrings.noCardAdded;
     // `.cast<CardEntity>()` — `cards`ning haqiqiy runtime turi (masalan
     // `List<CardModel>`) `firstWhere`ning `orElse` imzosini `CardModel
     // Function()` deb talab qilib qo'yishining oldini oladi (Dart
@@ -32,7 +32,7 @@ class ProfileState extends Equatable {
     );
     final provider = defaultCard.provider.isNotEmpty
         ? defaultCard.provider.toUpperCase()
-        : 'KARTA';
+        : AppStrings.cardGenericLabel;
     return '$provider ${defaultCard.maskedPan}';
   }
 

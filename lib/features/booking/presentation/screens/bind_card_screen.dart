@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/auth_guard.dart';
+import '../../../../core/utils/card_input_formatters.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../profile/data/datasources/card_remote_data_source.dart';
 import '../../../profile/data/models/card_model.dart';
@@ -16,6 +19,7 @@ import '../widgets/card_declined_bottom_sheet.dart';
 import 'card_sms_verification_screen.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 class BindCardScreen extends StatefulWidget {
   final CardRepository? repository;
@@ -50,27 +54,24 @@ class _BindCardScreenState extends State<BindCardScreen> {
     super.dispose();
   }
 
-  String get _expiryFormatted {
-    final digits = _expiryController.text;
-    if (digits.length < 4) return digits;
-    return '${digits.substring(0, 2)}/${digits.substring(2, 4)}';
-  }
+  // Kiritish maydoni allaqachon "OO/YY" ko'rinishida saqlaydi
+  // (CardExpiryInputFormatter), qayta formatlash shart emas.
+  String get _expiryFormatted => _expiryController.text;
 
   Future<void> _onSubmit() async {
     if (!await ensureLoggedIn(context)) return;
     if (!mounted) return;
-    final pan = _cardNumberController.text.trim();
+    final panDigits = _cardNumberController.text.replaceAll(' ', '');
+    final expiryDigits = _expiryController.text.replaceAll('/', '');
     final holder = _holderController.text.trim();
-    if (pan.length < 16 || _expiryController.text.length < 4 || holder.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Barcha maydonlarni to\'ldiring')),
-      );
+    if (panDigits.length < 16 || expiryDigits.length < 4 || holder.isEmpty) {
+      AppToast.warning(context, AppStrings.fillAllFields);
       return;
     }
 
     setState(() => _isLoading = true);
     final result = await _repository.addCard(
-      pan: pan,
+      pan: panDigits,
       expiry: _expiryFormatted,
       holder: holder.toUpperCase(),
     );
@@ -107,15 +108,15 @@ class _BindCardScreenState extends State<BindCardScreen> {
             },
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(exception.message), backgroundColor: AppColors.error),
-          );
+          AppToast.error(context, exception.message);
         }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => FocusScope.of(context).unfocus(),
@@ -129,7 +130,7 @@ class _BindCardScreenState extends State<BindCardScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            'Karta biriktirish',
+            AppStrings.bindCardTitle,
             style: GoogleFonts.unbounded(
               fontSize: 16.sp,
               fontWeight: FontWeight.w700,
@@ -166,7 +167,7 @@ class _BindCardScreenState extends State<BindCardScreen> {
                         ),
                         Gap(8.w),
                         Text(
-                          'Nega karta kerak?',
+                          AppStrings.whyCardNeededTitle,
                           style: GoogleFonts.unbounded(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w700,
@@ -177,7 +178,7 @@ class _BindCardScreenState extends State<BindCardScreen> {
                     ),
                     Gap(8.h),
                     Text(
-                      'Pik vaqtidagi bronlarda depozit kartada bloklanadi. Hozir hech narsa yechilmaydi va bloklanmaydi — karta faqat saqlanadi.',
+                      AppStrings.whyCardNeededDesc,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.sp,
                         color: const Color(0xFF4B5563),
@@ -190,7 +191,7 @@ class _BindCardScreenState extends State<BindCardScreen> {
               Gap(24.h),
 
               Text(
-                'Karta egasi',
+                AppStrings.cardHolderLabel,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w700,
@@ -208,13 +209,13 @@ class _BindCardScreenState extends State<BindCardScreen> {
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                 ),
-                decoration: _fieldDecoration(hint: 'IVANOV IVAN', icon: Icons.person_outline_rounded),
+                decoration: _fieldDecoration(hint: AppStrings.cardHolderHint, icon: Icons.person_outline_rounded),
               ),
               Gap(16.h),
 
               // Karta raqami
               Text(
-                'Karta raqami',
+                AppStrings.cardNumberLabel,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w700,
@@ -232,17 +233,14 @@ class _BindCardScreenState extends State<BindCardScreen> {
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
                 ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(16),
-                ],
-                decoration: _fieldDecoration(hint: '8600 0000 0000 0000', icon: Icons.credit_card),
+                inputFormatters: [CardNumberInputFormatter()],
+                decoration: _fieldDecoration(hint: '#### #### #### ####', icon: Icons.credit_card),
               ),
               Gap(16.h),
 
               // Amal muddati
               Text(
-                'Amal muddati',
+                AppStrings.cardExpiryLabel,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w700,
@@ -260,11 +258,8 @@ class _BindCardScreenState extends State<BindCardScreen> {
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
                 ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                decoration: _fieldDecoration(hint: 'OOYY', icon: Icons.calendar_today_rounded),
+                inputFormatters: [CardExpiryInputFormatter()],
+                decoration: _fieldDecoration(hint: AppStrings.cardExpiryHint, icon: Icons.calendar_today_rounded),
               ),
               Gap(20.h),
 
@@ -280,7 +275,7 @@ class _BindCardScreenState extends State<BindCardScreen> {
                   Gap(8.w),
                   Expanded(
                     child: Text(
-                      'Karta raqami hech qachon saqlanmaydi. Ma\'lumotlar xavfsiz shifrlanadi. CVV kodi talab etilmaydi.',
+                      AppStrings.cardSecurityNote,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5.sp,
                         color: AppColors.textSecondary,
@@ -297,13 +292,15 @@ class _BindCardScreenState extends State<BindCardScreen> {
           child: Padding(
             padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h),
             child: AppButton.primary(
-              text: 'Kartani biriktirish',
+              text: AppStrings.bindCardButton,
               isLoading: _isLoading,
               onPressed: _onSubmit,
             ),
           ),
         ),
       ),
+    );
+      },
     );
   }
 

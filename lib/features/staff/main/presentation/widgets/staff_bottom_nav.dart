@@ -33,9 +33,12 @@ class StaffBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    // 3 tugmali Android navigatsiyasida butun ilova (`MaterialApp.builder`,
+    // main_staff.dart) allaqachon `SafeArea(bottom: true)` bilan yuqoriga
+    // suriladi — bu yerda tizim insetini qayta qo'shish panelni keraksiz
+    // baland "ko'tarib" qo'yadi.
     return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h + bottomInset),
+      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 12.h),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,

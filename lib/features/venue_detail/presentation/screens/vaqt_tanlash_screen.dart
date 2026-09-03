@@ -23,6 +23,7 @@ import '../../../venue/domain/repositories/venue_repository.dart';
 import '../../../booking/presentation/screens/bind_card_screen.dart';
 import '../../../booking/presentation/screens/booking_confirmed_screen.dart';
 import 'slot_band_boldi_screen.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
@@ -232,9 +233,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
             _confirmBooking(cardId: newCardId);
           }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(exception.message), backgroundColor: AppColors.error),
-          );
+          AppToast.error(context, exception.message);
         }
     }
   }

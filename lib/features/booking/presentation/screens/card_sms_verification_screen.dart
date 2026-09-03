@@ -4,11 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../profile/domain/repositories/card_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 class CardSmsVerificationScreen extends StatefulWidget {
   final String bindingId;
@@ -69,9 +71,7 @@ class _CardSmsVerificationScreenState extends State<CardSmsVerificationScreen> {
         if (exception.code == 'sms_invalid') {
           setState(() => _hasError = true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(exception.message), backgroundColor: AppColors.error),
-          );
+          AppToast.error(context, exception.message);
         }
     }
   }
@@ -91,7 +91,7 @@ class _CardSmsVerificationScreenState extends State<CardSmsVerificationScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            'SMS tasdiqlash',
+            AppStrings.smsVerifyTitle,
             style: GoogleFonts.unbounded(
               fontSize: 16.sp,
               fontWeight: FontWeight.w700,
@@ -107,7 +107,7 @@ class _CardSmsVerificationScreenState extends State<CardSmsVerificationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'SMS kodni kiriting',
+                AppStrings.enterSmsCode,
                 style: GoogleFonts.unbounded(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w700,
@@ -116,7 +116,7 @@ class _CardSmsVerificationScreenState extends State<CardSmsVerificationScreen> {
               ),
               Gap(8.h),
               Text(
-                '${widget.maskedPan} kartasiga bog\'liq raqamga 6 xonali kod yuborildi',
+                AppStrings.smsCodeSentTo(widget.maskedPan),
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.sp,
                   color: AppColors.textSecondary,
@@ -187,7 +187,7 @@ class _CardSmsVerificationScreenState extends State<CardSmsVerificationScreen> {
               if (_hasError)
                 Center(
                   child: Text(
-                    'SMS kod noto\'g\'ri. Qayta kiriting.',
+                    AppStrings.smsCodeInvalid,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w600,
@@ -202,7 +202,7 @@ class _CardSmsVerificationScreenState extends State<CardSmsVerificationScreen> {
           child: Padding(
             padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h),
             child: AppButton.primary(
-              text: 'Tasdiqlash',
+              text: AppStrings.confirm,
               isLoading: _isLoading,
               onPressed: _onVerify,
             ),

@@ -22,6 +22,7 @@ import '../../domain/entities/booking_entity.dart';
 import '../../domain/repositories/booking_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -146,12 +147,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     final result = await _repository.cancelBooking(booking.id);
                     if (!mounted) return;
                     if (result.isSuccess) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Bron bekor qilindi'), backgroundColor: Color(0xFFDC3009)),
-                      );
+                      AppToast.info(context, 'Bron bekor qilindi');
                       _load();
                     } else if (result case Failure(:final exception)) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+                      AppToast.error(context, exception.message);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -190,15 +189,13 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     if (!mounted) return;
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vaqt muvaffaqiyatli o\'zgartirildi'), backgroundColor: Color(0xFF12B76A)),
-        );
+        AppToast.success(context, 'Vaqt muvaffaqiyatli o\'zgartirildi');
         _load();
       case Failure(:final exception):
         final message = exception.code == 'no_table_available'
             ? 'Bu vaqtga bo\'sh stol yo\'q'
             : exception.message;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: AppColors.error));
+        AppToast.error(context, message);
     }
   }
 
@@ -272,11 +269,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                         switch (result) {
                           case Success():
                             setState(() => _reviewSubmitted = true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Sharhingiz uchun rahmat!'), backgroundColor: Color(0xFF12B76A)),
-                            );
+                            AppToast.success(context, 'Sharhingiz uchun rahmat!');
                           case Failure(:final exception):
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message), backgroundColor: AppColors.error));
+                            AppToast.error(context, exception.message);
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -333,7 +328,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           Gap(6.w),
         ],
       ),
-      body: RefreshIndicator(
+      body: RefreshIndicator.adaptive(
         onRefresh: _load,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -575,7 +570,15 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, color: const Color(0xFF6B7280))),
-          Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, fontWeight: FontWeight.w600, color: const Color(0xFF181A20))),
+          Gap(8.w),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, fontWeight: FontWeight.w600, color: const Color(0xFF181A20)),
+            ),
+          ),
         ],
       ),
     );

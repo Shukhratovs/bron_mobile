@@ -14,6 +14,7 @@ import '../widgets/staff_table_select_sheet.dart';
 import '../../../../../core/widgets/app_icon.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/widgets/shimmer_skeleton.dart';
+import '../../../../../core/widgets/app_toast.dart';
 
 /// Figma: `Bron detali` (`292:468`), `Mehmon kelmadi` (`787:1132`).
 class StaffBookingDetailScreen extends StatefulWidget {
@@ -85,7 +86,7 @@ class _StaffBookingDetailScreenState extends State<StaffBookingDetailScreen> {
         final message = exception.code == 'table_busy'
             ? 'Stol band: ${(exception.body?['tables'] as List?)?.join(', ') ?? exception.message}'
             : exception.message;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: AppColors.error));
+        AppToast.error(context, message);
     }
   }
 
@@ -229,21 +230,28 @@ class _StaffBookingDetailScreenState extends State<StaffBookingDetailScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Stol', style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary)),
-                        Row(
-                          children: [
-                            Text(
-                              booking.tableLabel.isEmpty ? '—' : booking.tableLabel,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                            ),
-                            Gap(6.w),
-                            GestureDetector(
-                              onTap: _isSubmitting ? null : _onChangeTable,
-                              child: Text(
-                                'O\'zgartirish',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12.5.sp, fontWeight: FontWeight.w700, color: AppColors.primary),
+                        Gap(8.w),
+                        Flexible(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  booking.tableLabel.isEmpty ? '—' : booking.tableLabel,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                ),
                               ),
-                            ),
-                          ],
+                              Gap(6.w),
+                              GestureDetector(
+                                onTap: _isSubmitting ? null : _onChangeTable,
+                                child: Text(
+                                  'O\'zgartirish',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5.sp, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

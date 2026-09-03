@@ -24,6 +24,7 @@ import 'reviews_screen.dart';
 import 'vaqt_tanlash_screen.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 class VenueDetailScreen extends StatefulWidget {
   final String venueId;
@@ -141,9 +142,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
     if (venue == null) return;
     final text = '${venue.name}${venue.address != null ? ' • ${venue.address}' : ''}';
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.linkCopied)),
-    );
+    AppToast.info(context, AppStrings.linkCopied);
   }
 
   @override
@@ -480,14 +479,18 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    topReview.authorName,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13.5.sp,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary,
+                                  Flexible(
+                                    child: Text(
+                                      topReview.authorName,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13.5.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
                                     ),
                                   ),
+                                  Gap(8.w),
                                   Row(
                                     children: [
                                       AppIcon(

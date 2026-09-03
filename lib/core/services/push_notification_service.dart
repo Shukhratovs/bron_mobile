@@ -103,12 +103,18 @@ class PushNotificationService {
       if (!isLoggedIn()) return;
 
       final platform = Platform.isIOS ? 'ios' : 'android';
+      // suppressAuthClear: bu fon so'rovi — agar token muddati aynan shu
+      // paytda tugagan bo'lsa ham, foydalanuvchi hali hech narsa qilmagan,
+      // shuning uchun butun sessiya jimgina o'chirilmasligi kerak (aks holda
+      // ilova ochilishi bilanoq, foydalanuvchi bilmagan holda chiqib
+      // ketadi).
       await apiClient.post(
         devicesEndpoint,
         body: {
           'token': token,
           'platform': platform,
         },
+        suppressAuthClear: true,
       );
     } catch (_) {
       // Token registration failed — will retry on next refresh
@@ -129,7 +135,7 @@ class PushNotificationService {
     try {
       final token = await _messaging.getToken();
       if (token == null || token.isEmpty) return;
-      await apiClient.delete('$devicesEndpoint?token=$token');
+      await apiClient.delete('$devicesEndpoint?token=$token', suppressAuthClear: true);
     } catch (_) {
       // Yo'q tokenni o'chirish ham 204 qaytaradi — xato bo'lsa ham
       // chiqish oqimini to'xtatmaymiz.

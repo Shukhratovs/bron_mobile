@@ -51,6 +51,10 @@
 	<string>Yaqin atrofdagi joylarni ko'rsatish uchun joylashuvingiz kerak</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Yaqin atrofdagi joylarni ko'rsatish uchun joylashuvingiz kerak</string>
+	<key>NSCameraUsageDescription</key>
+	<string>QR-kodni skanerlash va profil rasmini olish uchun kamera kerak</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil rasmini tanlash uchun galereyaga ruxsat kerak</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

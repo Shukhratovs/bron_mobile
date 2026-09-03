@@ -18,6 +18,7 @@ import '../../domain/repositories/staff_waitlist_repository.dart';
 import '../../../../../core/widgets/app_icon.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/widgets/shimmer_skeleton.dart';
+import '../../../../../core/widgets/app_toast.dart';
 
 /// Figma: `Navbat` (`305:488`), `Navbat · buyurtma` (`1167:1703`),
 /// `Navbatga qo'shish` (`785:1078`), `Mehmonni chaqirish` (`785:1154`).
@@ -122,7 +123,7 @@ class _StaffNavbatScreenState extends State<StaffNavbatScreen> {
                   );
                   if (!mounted) return;
                   if (result case Failure(:final exception)) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+                    AppToast.error(context, exception.message);
                   }
                   _load();
                 },
@@ -138,7 +139,7 @@ class _StaffNavbatScreenState extends State<StaffNavbatScreen> {
     final result = await _repository.call(entry.id, idempotencyKey: newIdempotencyKey());
     if (!mounted) return;
     if (result case Failure(:final exception)) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+      AppToast.error(context, exception.message);
     }
     _load();
   }
@@ -147,7 +148,7 @@ class _StaffNavbatScreenState extends State<StaffNavbatScreen> {
     final result = await _repository.remove(entry.id, idempotencyKey: newIdempotencyKey());
     if (!mounted) return;
     if (result case Failure(:final exception)) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+      AppToast.error(context, exception.message);
     }
     _load();
   }
@@ -204,7 +205,7 @@ class _StaffNavbatScreenState extends State<StaffNavbatScreen> {
         }
         _load();
       case Failure(:final exception):
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message)));
+        AppToast.error(context, exception.message);
     }
   }
 

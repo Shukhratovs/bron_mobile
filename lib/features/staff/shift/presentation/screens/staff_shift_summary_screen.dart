@@ -8,6 +8,7 @@ import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../core/staff_session.dart';
 import '../../data/models/shift_summary_model.dart';
+import '../../../../../core/widgets/app_toast.dart';
 
 /// Xostes — Smena yakuni tab'i. Figma: i8FGYLF28h8GYXQgd1Pczf, "6 · YAKUN"
 /// (node 352:716). `GET /staff/shift/summary` — faqat o'qish, hech narsani
@@ -91,7 +92,7 @@ class _StaffShiftSummaryScreenState extends State<StaffShiftSummaryScreen> {
       ),
     );
     if (confirmed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Smena yopildi (faqat shu qurilmada)')));
+      AppToast.info(context, 'Smena yopildi (faqat shu qurilmada)');
     }
   }
 
@@ -109,7 +110,7 @@ class _StaffShiftSummaryScreenState extends State<StaffShiftSummaryScreen> {
                     ? _buildError()
                     : _summary == null
                         ? const SizedBox.shrink()
-                        : RefreshIndicator(onRefresh: _load, child: _buildBody(_summary!)),
+                        : RefreshIndicator.adaptive(onRefresh: _load, child: _buildBody(_summary!)),
             // "Smenani yopish" CTA — nav pill ustida suzadi (extendBody
             // orqali IndexedStack butun ekranni egallaydi).
             Positioned(left: 0, right: 0, bottom: 0, child: _buildCta()),
@@ -352,7 +353,10 @@ class _StaffShiftSummaryScreenState extends State<StaffShiftSummaryScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(rows[i].$1, style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF5C5C5C))),
+                  Flexible(
+                    child: Text(rows[i].$1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF5C5C5C))),
+                  ),
+                  Gap(8.w),
                   Text(rows[i].$2, style: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w500, color: const Color(0xFF171717))),
                 ],
               ),

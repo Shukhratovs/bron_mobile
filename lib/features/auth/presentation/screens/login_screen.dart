@@ -15,6 +15,7 @@ import '../../domain/entities/telegram_login_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 /// Figma: mijoz "Telefon raqami"/"SMS kirish" ekranlari SMS gateway
 /// bo'lmagani uchun chizilmaydi — buning o'rniga Telegram bot oqimi
@@ -122,12 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await AppSession.pushService.registerTokenAfterLogin();
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Xush kelibsiz! Tizimga muvaffaqiyatli kirdingiz.'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    AppToast.success(context, 'Xush kelibsiz! Tizimga muvaffaqiyatli kirdingiz.');
     if (widget.onLoginSuccess != null) {
       widget.onLoginSuccess!();
     } else {
@@ -213,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               )
                             : Text(
-                                'Telegram orqali kirish',
+                                AppStrings.loginViaTelegram,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 15.5.sp,
                                   fontWeight: FontWeight.w700,

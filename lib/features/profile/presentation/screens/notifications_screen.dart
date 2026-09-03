@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
@@ -15,6 +14,7 @@ import '../../domain/entities/notification_item_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final ProfileRepository? repository;
@@ -67,22 +67,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await _loadNotifications();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.markAllAsRead),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      AppToast.success(context, AppStrings.markAllAsRead);
     }
   }
 
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
-    if (diff.inMinutes < 1) return 'Hozir';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
-    if (diff.inHours < 24) return '${diff.inHours} soat';
-    if (diff.inDays < 7) return '${diff.inDays} kun';
+    if (diff.inMinutes < 1) return AppStrings.timeNow;
+    if (diff.inMinutes < 60) return '${diff.inMinutes} ${AppStrings.timeMinutesShort}';
+    if (diff.inHours < 24) return '${diff.inHours} ${AppStrings.timeHoursShort}';
+    if (diff.inDays < 7) return '${diff.inDays} ${AppStrings.timeDaysShort}';
     return '${dateTime.day}.${dateTime.month.toString().padLeft(2, '0')}';
   }
 

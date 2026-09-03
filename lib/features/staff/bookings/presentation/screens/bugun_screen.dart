@@ -96,7 +96,7 @@ class _BugunScreenState extends State<BugunScreen> {
       backgroundColor: const Color(0xFFF7F7F7),
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
+        child: RefreshIndicator.adaptive(
           onRefresh: _load,
           child: CustomScrollView(
             slivers: [

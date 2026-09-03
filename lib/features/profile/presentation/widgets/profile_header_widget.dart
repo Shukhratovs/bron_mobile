@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/widgets/app_avatar_image.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../domain/entities/user_profile_entity.dart';
 
@@ -74,8 +75,6 @@ class ProfileHeaderWidget extends StatelessWidget {
     }
 
     // Logged in user header row
-    final avatarPath = user!.avatarUrl ?? AppAssets.me;
-
     return Row(
       children: [
         // Avatar with green status indicator
@@ -89,18 +88,15 @@ class ProfileHeaderWidget extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: const Color(0xFFF3F4F6),
               ),
-              child: ClipOval(
-                child: Image.asset(
-                  avatarPath,
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.high,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: AppColors.primarySoft,
-                    child: AppIcon(
-                      AppAssets.iconUser3Fill,
-                      size: 32.r,
-                      color: AppColors.primary,
-                    ),
+              child: AppAvatarImage(
+                avatarPath: user!.avatarUrl,
+                size: 56.r,
+                fallback: Container(
+                  color: AppColors.primarySoft,
+                  child: AppIcon(
+                    AppAssets.iconUser3Fill,
+                    size: 32.r,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -168,7 +164,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                 ),
                 Gap(6.w),
                 Text(
-                  AppStrings.editProfile,
+                  AppStrings.editProfile.limit(10),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -181,5 +177,12 @@ class ProfileHeaderWidget extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+extension StringExtension on String {
+  String limit(int maxLength) {
+    if (length <= maxLength) return this;
+    return '${substring(0, maxLength)}...';
   }
 }

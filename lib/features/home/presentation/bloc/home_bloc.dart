@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/api_result.dart';
+import '../../../../core/network/network_exceptions.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
 import '../../../venue/domain/repositories/venue_repository.dart';
 import '../../domain/venue_filters.dart';
@@ -37,6 +38,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         check: state.filters.check,
         ratingMin: state.filters.ratingMin,
         sort: state.filters.sort == 'yaqin' ? null : state.filters.sort,
+        date: state.filters.dateParam,
+        guests: state.filters.effectiveGuests,
         limit: 20,
       ),
       venueRepository.getVenues(
@@ -53,12 +56,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     List<VenueEntity> venues = [];
     List<VenueEntity> todayVenues = state.todayVenues;
     String? error;
+    bool isOffline = false;
 
     switch (listResult) {
       case Success(:final data):
-        venues = data.items;
+        venues = state.filters.hasClientOnlyFilters
+            ? data.items.where(state.filters.matchesClientSide).toList()
+            : data.items;
       case Failure(:final exception):
         error = exception.message;
+        isOffline = exception is NoInternetException;
     }
 
     if (todayResult case Success(:final data)) {
@@ -70,6 +77,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       venues: venues,
       todayVenues: todayVenues,
       errorMessage: error,
+      isOffline: isOffline,
     ));
   }
 

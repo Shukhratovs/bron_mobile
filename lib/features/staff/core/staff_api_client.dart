@@ -22,22 +22,22 @@ class StaffApiClient implements ApiClient {
   }
 
   @override
-  Future<dynamic> get(String url, {Map<String, String>? headers}) =>
-      _inner.get(url, headers: _withVenueHeader(headers));
+  Future<dynamic> get(String url, {Map<String, String>? headers, bool suppressAuthClear = false}) =>
+      _inner.get(url, headers: _withVenueHeader(headers), suppressAuthClear: suppressAuthClear);
 
   @override
-  Future<dynamic> post(String url, {Map<String, String>? headers, dynamic body}) =>
-      _inner.post(url, headers: _withVenueHeader(headers), body: body);
+  Future<dynamic> post(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false}) =>
+      _inner.post(url, headers: _withVenueHeader(headers), body: body, suppressAuthClear: suppressAuthClear);
 
   @override
-  Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body}) =>
-      _inner.put(url, headers: _withVenueHeader(headers), body: body);
+  Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false}) =>
+      _inner.put(url, headers: _withVenueHeader(headers), body: body, suppressAuthClear: suppressAuthClear);
 
   @override
-  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body}) =>
-      _inner.patch(url, headers: _withVenueHeader(headers), body: body);
+  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false}) =>
+      _inner.patch(url, headers: _withVenueHeader(headers), body: body, suppressAuthClear: suppressAuthClear);
 
   @override
-  Future<dynamic> delete(String url, {Map<String, String>? headers}) =>
-      _inner.delete(url, headers: _withVenueHeader(headers));
+  Future<dynamic> delete(String url, {Map<String, String>? headers, bool suppressAuthClear = false}) =>
+      _inner.delete(url, headers: _withVenueHeader(headers), suppressAuthClear: suppressAuthClear);
 }

@@ -3,18 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/widgets/app_button.dart';
 
 class CardDeclinedBottomSheet extends StatelessWidget {
   final VoidCallback? onSelectAnotherCard;
   final VoidCallback? onRetry;
-  final String message;
+  final String? message;
 
   const CardDeclinedBottomSheet({
     super.key,
     this.onSelectAnotherCard,
     this.onRetry,
-    this.message = 'Blok summasi tasdiqlanmadi. Kartada yetarli mablag\' borligini tekshiring yoki boshqa karta tanlang.',
+    this.message,
   });
 
   static Future<void> show(
@@ -29,8 +30,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
       builder: (context) => CardDeclinedBottomSheet(
         onSelectAnotherCard: onSelectAnotherCard,
         onRetry: onRetry,
-        message: message ??
-            'Blok summasi tasdiqlanmadi. Kartada yetarli mablag\' borligini tekshiring yoki boshqa karta tanlang.',
+        message: message,
       ),
     );
   }
@@ -65,7 +65,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
             ),
             Gap(12.h),
             Text(
-              'Karta rad etildi',
+              AppStrings.cardDeclinedTitle,
               style: GoogleFonts.unbounded(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w700,
@@ -74,7 +74,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
             ),
             Gap(8.h),
             Text(
-              message,
+              message ?? AppStrings.cardDeclinedDefaultMessage,
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13.sp,
@@ -91,7 +91,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFFDE68A)),
               ),
               child: Text(
-                'Karta raqami hech qachon saqlanmaydi.',
+                AppStrings.cardNeverStoredNote,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
@@ -101,7 +101,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
             ),
             Gap(24.h),
             AppButton.primary(
-              text: 'Boshqa karta tanlash',
+              text: AppStrings.selectAnotherCard,
               onPressed: () {
                 Navigator.pop(context);
                 onSelectAnotherCard?.call();
@@ -114,7 +114,7 @@ class CardDeclinedBottomSheet extends StatelessWidget {
                 onRetry?.call();
               },
               child: Text(
-                'Qayta urinish',
+                AppStrings.retry,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
