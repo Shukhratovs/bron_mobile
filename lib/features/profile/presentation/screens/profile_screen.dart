@@ -9,6 +9,7 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/language/language_cubit.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../auth/data/datasources/auth_remote_data_source.dart';
@@ -24,6 +25,7 @@ import '../../data/repositories/profile_repository_impl.dart';
 import '../../domain/repositories/card_repository.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../bloc/profile_bloc.dart';
+import '../widgets/broadcast_notification_sheet.dart';
 import '../widgets/language_selection_sheet.dart';
 import '../widgets/logout_confirmation_sheet.dart';
 import '../widgets/profile_bonus_card_widget.dart';
@@ -60,6 +62,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final AuthRepository _authRepository;
   late final ProfileRepository _profileRepository;
   String _appVersion = '1.0.0';
+
+  /// Faqat shu raqamga tegishli akkauntda "Barchaga xabar yuborish" tugmasi
+  /// ko'rinadi. Solishtirish "+", bo'shliq va "-" larni olib tashlab
+  /// qilinadi, shuning uchun raqam qanday formatda saqlangan bo'lishidan
+  /// qat'i nazar ishlaydi.
+  static const _broadcastAdminPhone = '998912719555';
+
+  bool _isBroadcastAdmin(String? phoneNumber) {
+    if (phoneNumber == null) return false;
+    final digits = phoneNumber.replaceAll(RegExp(r'\D'), '');
+    return digits == _broadcastAdminPhone;
+  }
 
   @override
   void initState() {
@@ -185,6 +199,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _onPartnerTap() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => BecomePartnerScreen(repository: _profileRepository)),
+    );
+  }
+
+  void _onBroadcastTap() {
+    BroadcastNotificationSheet.show(
+      context,
+      onSend: (title, body, adminSecret) async {
+        try {
+          await AppSession.apiClient.post(
+            ApiEndpoints.broadcastNotification,
+            headers: {'x-admin-secret': adminSecret},
+            body: {'title': title, 'body': body},
+            // Bu Cloud Function ilova sessiyasiga aloqasi yo'q — noto'g'ri
+            // admin kaliti 403 qaytarsa ham, foydalanuvchining o'z login
+            // sessiyasi o'chirilmasligi kerak.
+            suppressAuthClear: true,
+          );
+          if (mounted) AppToast.success(context, 'Xabar barcha foydalanuvchilarga yuborildi');
+        } catch (_) {
+          if (mounted) AppToast.error(context, 'Yuborib bo\'lmadi — admin kalitini tekshiring');
+        }
+      },
     );
   }
 
@@ -404,9 +440,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: AppStrings.staffModeTitle,
                           subtitle: AppStrings.staffModeSubtitle,
                           svgPath: AppAssets.iconUser3Line,
-                          showDivider: false,
+                          showDivider: !_isBroadcastAdmin(state.user?.phoneNumber),
                           onTap: _onStaffModeTap,
                         ),
+                        if (_isBroadcastAdmin(state.user?.phoneNumber))
+                          ProfileMenuItemWidget(
+                            title: 'Barchaga xabar yuborish',
+                            iconData: Icons.campaign_rounded,
+                            showDivider: false,
+                            onTap: _onBroadcastTap,
+                          ),
                       ],
                     ),
                   ),

@@ -56,7 +56,7 @@ class CustomBottomNavBar extends StatefulWidget {
       ];
 
   static const Color activeTint = Color(0xFFDC3009);
-  static const Color inactiveTint = Color(0xFF6B7280);
+  static const Color inactiveTint = Color(0xFF332C2C);
 
   /// Suzuvchi panel butunlay ko'rinishi uchun scroll kontent pastida
   /// qoldirilishi kerak bo'lgan joy: panelning o'zi (~60.h: konteyner
@@ -66,8 +66,8 @@ class CustomBottomNavBar extends StatefulWidget {
   /// (120.h/100.h) raqam yozgan edi — ba'zilarida panel tagida ortiqcha
   /// katta bo'sh joy qolar edi.
   static double reservedBottomSpace(BuildContext context) =>
-      defaultTargetPlatform == TargetPlatform.iOS
-          ? IosLiquidGlassNavBar.reservedBottomSpace(context)
+      defaultTargetPlatform == TargetPlatform.iOS || kForceIosNavBarOnAndroid
+          ? iosNavBarReservedBottomSpace(context)
           : 96.h + MediaQuery.of(context).padding.bottom;
 
   @override
@@ -289,7 +289,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11.5.sp,
                                           fontWeight:
-                                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                                              isSelected ? FontWeight.bold : FontWeight.w500,
                                           color: isSelected
                                               ? CustomBottomNavBar.activeTint
                                               : CustomBottomNavBar.inactiveTint,

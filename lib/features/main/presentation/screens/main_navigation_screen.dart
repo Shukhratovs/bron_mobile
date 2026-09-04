@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../../bookings/presentation/screens/bookings_screen.dart';
 import '../../../home/presentation/screens/home_screen.dart';
@@ -49,22 +50,31 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<LanguageCubit, LanguageState>(
       builder: (context, langState) {
+        final body = IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        );
+
+        if (defaultTargetPlatform == TargetPlatform.iOS || kForceIosNavBarOnAndroid) {
+          return GlassScaffold(
+            extendBody: true,
+            backgroundColor: Colors.white,
+            body: body,
+            bottomBar: buildIosGlassTabBar(
+              selectedIndex: _currentIndex,
+              onTabSelected: _onTabSelected,
+            ),
+          );
+        }
+
         return Scaffold(
           extendBody: true,
           backgroundColor: Colors.white,
-          body: IndexedStack(
-            index: _currentIndex,
-            children: _screens,
+          body: body,
+          bottomNavigationBar: CustomBottomNavBar(
+            currentIndex: _currentIndex,
+            onTap: _onTabSelected,
           ),
-          bottomNavigationBar: defaultTargetPlatform == TargetPlatform.iOS
-              ? IosLiquidGlassNavBar(
-                  currentIndex: _currentIndex,
-                  onTap: _onTabSelected,
-                )
-              : CustomBottomNavBar(
-                  currentIndex: _currentIndex,
-                  onTap: _onTabSelected,
-                ),
         );
       },
     );
