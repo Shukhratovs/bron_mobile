@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'core/language/language_cubit.dart';
 import 'core/network/app_session.dart';
 import 'core/services/push_notification_service.dart';
@@ -18,11 +19,12 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await AppSession.pushService.init();
+  await LiquidGlassWidgets.initialize();
 
   final languageCubit = LanguageCubit();
   await languageCubit.init();
 
-  runApp(MyApp(languageCubit: languageCubit));
+  runApp(LiquidGlassWidgets.wrap(child: MyApp(languageCubit: languageCubit)));
 }
 
 class MyApp extends StatelessWidget {

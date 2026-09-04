@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../network/api_client.dart';
 
@@ -33,6 +34,12 @@ class PushNotificationService {
   // zahoti murojaat qilinib "No Firebase App '[DEFAULT]'" xatosini beradi.
   late final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   late final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+
+  /// Barcha qurilmalarga bir vaqtda push yuborish uchun obuna nomi.
+  /// Firebase Console → Cloud Messaging → "New notification" → Target →
+  /// Topic → shu nomni ("all_devices") kiritsangiz, obuna bo'lgan barcha
+  /// qurilmalarga push yetadi — alohida FCM token kerak emas.
+  static const _allDevicesTopic = 'all_devices';
 
   static const _androidChannel = AndroidNotificationChannel(
     'bron_notifications',
@@ -93,13 +100,28 @@ class PushNotificationService {
 
     // 9. Listen for token refresh
     _messaging.onTokenRefresh.listen((_) => _registerToken());
+
+    // 10. Barcha qurilmalar uchun umumiy topic'ga obuna — login talab
+    // qilinmaydi, shuning uchun Firebase Console'dan (yoki serverdan)
+    // shu topic'ga yuborilgan push HAR BIR o'rnatilgan qurilmaga yetadi.
+    try {
+      await _messaging.subscribeToTopic(_allDevicesTopic);
+    } catch (_) {
+      // Internet yo'q yoki boshqa vaqtinchalik xato — keyingi ishga
+      // tushirishda qayta urinib ko'riladi.
+    }
   }
+
+  /// Test uchun: joriy FCM tokenni qaytaradi (Firebase Console'dan
+  /// "Send test message" bilan shu qurilmaga push yuborish uchun ishlatiladi).
+  Future<String?> getToken() => _messaging.getToken();
 
   /// Get current FCM token and send to backend.
   Future<void> _registerToken() async {
     try {
       final token = await _messaging.getToken();
       if (token == null || token.isEmpty) return;
+      if (kDebugMode) debugPrint('FCM token: $token');
       if (!isLoggedIn()) return;
 
       final platform = Platform.isIOS ? 'ios' : 'android';

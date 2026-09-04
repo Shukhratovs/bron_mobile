@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -120,6 +121,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _showFcmToken() async {
+    final token = await AppSession.pushService.getToken();
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('FCM token (test)'),
+        content: SelectableText(token ?? 'Token topilmadi'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (token != null) Clipboard.setData(ClipboardData(text: token));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Token nusxalandi')),
+              );
+            },
+            child: const Text('Nusxalash'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Yopish'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openNotifications() {
     Navigator.push(
       context,
@@ -149,6 +178,14 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, langState) {
           return Scaffold(
             backgroundColor: const Color(0xFFF7F7F7),
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: kDebugMode
+                ? FloatingActionButton.small(
+                    heroTag: 'fcm_token_debug_fab',
+                    onPressed: _showFcmToken,
+                    child: const Icon(Icons.bug_report_outlined),
+                  )
+                : null,
             body: Column(
               children: [
                 // Fixed header

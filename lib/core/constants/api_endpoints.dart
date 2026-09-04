@@ -25,6 +25,15 @@ class ApiEndpoints {
   static String notificationRead(String id) => '$baseUrl/api/v1/me/notifications/$id/read';
   static const String notificationsReadAll = '$baseUrl/api/v1/me/notifications/read';
 
+  // Admin — barcha foydalanuvchilarga push yuborish. Bu maxsus backend
+  // emas, Firebase Cloud Function (`functions/index.js`, shu loyihaning
+  // "e-bron" Firebase proyektida) — {title, body} qabul qilib,
+  // Admin SDK orqali `all_devices` topic'iga yuboradi. `x-admin-secret`
+  // header orqali himoyalangan (qiymat ilovaga yozilmaydi, forma orqali
+  // qo'lda kiritiladi).
+  static const String broadcastNotification =
+      'https://us-central1-e-bron.cloudfunctions.net/broadcastNotification';
+
   // Venues
   static const String venues = '$baseUrl/api/v1/venues';
   static const String venuesMap = '$baseUrl/api/v1/venues/map';
