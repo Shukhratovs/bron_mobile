@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "bron.mobile.uz.bron_mobile"
+    namespace = "bron.mobile.uz"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "bron.mobile.uz.bron_mobile"
+        applicationId = "bron.mobile.uz"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 26

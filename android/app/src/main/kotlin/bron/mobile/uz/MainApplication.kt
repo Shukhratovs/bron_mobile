@@ -1,4 +1,4 @@
-package bron.mobile.uz.bron_mobile
+package bron.mobile.uz
 
 import android.app.Application
 import com.yandex.mapkit.MapKitFactory
