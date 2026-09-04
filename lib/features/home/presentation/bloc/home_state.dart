@@ -9,6 +9,7 @@ class HomeState extends Equatable {
   final String? selectedKind;
   final VenueFilters filters;
   final String? errorMessage;
+  final bool isOffline;
 
   const HomeState({
     this.status = HomeStatus.initial,
@@ -17,6 +18,7 @@ class HomeState extends Equatable {
     this.selectedKind = 'restoran',
     this.filters = const VenueFilters(),
     this.errorMessage,
+    this.isOffline = false,
   });
 
   HomeState copyWith({
@@ -26,6 +28,7 @@ class HomeState extends Equatable {
     String? selectedKind,
     VenueFilters? filters,
     String? errorMessage,
+    bool? isOffline,
     bool clearKind = false,
     bool clearError = false,
   }) {
@@ -36,9 +39,10 @@ class HomeState extends Equatable {
       selectedKind: clearKind ? null : (selectedKind ?? this.selectedKind),
       filters: filters ?? this.filters,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      isOffline: clearError ? false : (isOffline ?? this.isOffline),
     );
   }
 
   @override
-  List<Object?> get props => [status, venues, todayVenues, selectedKind, filters, errorMessage];
+  List<Object?> get props => [status, venues, todayVenues, selectedKind, filters, errorMessage, isOffline];
 }

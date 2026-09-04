@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Bron Mobile</string>
+	<string>Bron.uz</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,31 +26,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneClassName</key>
-					<string>UIWindowScene</string>
-					<key>UISceneConfigurationName</key>
-					<string>flutter</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Yaqin atrofdagi joylarni ko'rsatish uchun joylashuvingiz kerak</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Yaqin atrofdagi joylarni ko'rsatish uchun joylashuvingiz kerak</string>
+	<key>NSCameraUsageDescription</key>
+	<string>QR-kodni skanerlash va profil rasmini olish uchun kamera kerak</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil rasmini tanlash uchun galereyaga ruxsat kerak</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

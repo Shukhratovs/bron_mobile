@@ -29,6 +29,8 @@ import '../widgets/logout_confirmation_sheet.dart';
 import '../widgets/profile_bonus_card_widget.dart';
 import '../widgets/profile_header_widget.dart';
 import '../widgets/profile_menu_item_widget.dart';
+import '../../../main/presentation/widgets/custom_bottom_nav_bar.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'become_partner_screen.dart';
 import 'bonus_screen.dart';
 import 'edit_profile_screen.dart';
@@ -134,10 +136,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _onCardsTap() {
-    Navigator.of(context).push(
+  void _onCardsTap() async {
+    await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const MyCardsScreen()),
     );
+    // Kartalar ro'yxati (qo'shish/o'chirish/asosiyni almashtirish) shu
+    // ekranda o'zgarishi mumkin — profilga qaytilganda "Kartalarim"
+    // qatoridagi taglavha (masalan "Karta qo'shilmagan") shu zahoti
+    // yangilanishi uchun qayta yuklanadi.
+    if (mounted) {
+      _profileBloc.add(const ProfileLoadRequested());
+    }
   }
 
   void _onFavoritesTap() async {
@@ -185,12 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onConfirm: () async {
         _profileBloc.add(const ProfileLogoutRequested());
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tizimdan chiqildi'),
-              backgroundColor: AppColors.primary,
-            ),
-          );
+          AppToast.info(context, AppStrings.loggedOutToast);
         }
       },
     );
@@ -327,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Scrollable content
         Expanded(
-          child: RefreshIndicator(
+          child: RefreshIndicator.adaptive(
             onRefresh: () async {
               _profileBloc.add(const ProfileLoadRequested());
               await _profileBloc.stream.firstWhere(
@@ -397,8 +401,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onTap: _onPartnerTap,
                         ),
                         ProfileMenuItemWidget(
-                          title: 'Xostes rejimi',
-                          subtitle: 'xodimlar uchun (dev)',
+                          title: AppStrings.staffModeTitle,
+                          subtitle: AppStrings.staffModeSubtitle,
                           svgPath: AppAssets.iconUser3Line,
                           showDivider: false,
                           onTap: _onStaffModeTap,
@@ -424,10 +428,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onTap: _onLogout,
                       ),
                     ),
+                  Gap(20.h),
                   // Version
                   Center(
                     child: Text(
-                      'Bron · versiya $_appVersion',
+                      '${AppStrings.appName} · ${AppStrings.version} $_appVersion',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
@@ -435,7 +440,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  Gap(100.h),
+                  Gap(CustomBottomNavBar.reservedBottomSpace(context)/2),
                 ],
               ),
             ),

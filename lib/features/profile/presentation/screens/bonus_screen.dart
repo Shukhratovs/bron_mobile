@@ -5,9 +5,11 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 enum SubscriptionPlan { monthly, yearly }
 
@@ -47,12 +49,7 @@ class _BonusScreenState extends State<BonusScreen> {
       _isSubscribed = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('BRON PLUS muvaffaqiyatli faollashtirildi!'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    AppToast.success(context, AppStrings.bronPlusActivatedSuccess);
   }
 
   void _showCancelBottomSheet() {
@@ -91,7 +88,7 @@ class _BonusScreenState extends State<BonusScreen> {
 
                   // Title
                   Text(
-                    'Obunani bekor qilasizmi?',
+                    AppStrings.cancelSubscriptionTitle,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w700,
@@ -102,7 +99,7 @@ class _BonusScreenState extends State<BonusScreen> {
 
                   // Subtitle
                   Text(
-                    'Plus 25-dekabr 2026 gacha ishlashda davom etadi. Shundan keyin imtiyozlar o\'chadi va avtomatik to\'lov to\'xtaydi.',
+                    AppStrings.cancelSubscriptionDesc,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5.sp,
                       fontWeight: FontWeight.w400,
@@ -122,7 +119,7 @@ class _BonusScreenState extends State<BonusScreen> {
                       border: Border.all(color: const Color(0xFFECEFF3)),
                     ),
                     child: Text(
-                      'Shu yilda Plus bilan 480 000 so\'m tejadingiz — obuna narxidan 90 000 so\'m ko\'p.',
+                      AppStrings.cancelSubscriptionSavingsNote,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
@@ -147,7 +144,7 @@ class _BonusScreenState extends State<BonusScreen> {
                         ),
                       ),
                       child: Text(
-                        'Yo\'q, obunani qoldiraman',
+                        AppStrings.keepSubscriptionButton,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 15.5.sp,
                           fontWeight: FontWeight.w700,
@@ -166,17 +163,12 @@ class _BonusScreenState extends State<BonusScreen> {
                         setState(() {
                           _isSubscribed = false;
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Obuna bekor qilindi'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
+                        AppToast.warning(context, AppStrings.subscriptionCancelledToast);
                       },
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 16.w),
                         child: Text(
-                          'Ha, bekor qilaman',
+                          AppStrings.confirmCancelSubscription,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14.5.sp,
                             fontWeight: FontWeight.w600,
@@ -212,99 +204,102 @@ class _BonusScreenState extends State<BonusScreen> {
       backgroundColor: const Color(0xFFF9FAFB),
       body: Column(
         children: [
+          // Dark Header with Arches Banner — scroll bo'lganda joyidan
+          // siljimasligi uchun scroll kontentdan tashqarida, sobit
+          // sarlavha sifatida turadi.
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF181A20),
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(24.r),
+              ),
+              image: const DecorationImage(
+                image: AssetImage(AppAssets.bonusBackBig),
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.high,
+                alignment: Alignment.topRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Back button
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 38.r,
+                        height: 38.r,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 20.r,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Gap(18.h),
+
+                    // "BRON PLUS" Pill Badge
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      child: Text(
+                        AppStrings.bronPlus,
+                        style: GoogleFonts.unbounded(
+                          fontSize: 10.5.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    Gap(12.h),
+
+                    // Title
+                    Text(
+                      AppStrings.bonusPlusHeaderTitle,
+                      style: GoogleFonts.unbounded(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.25,
+                      ),
+                    ),
+                    Gap(8.h),
+
+                    // Subtitle
+                    Text(
+                      AppStrings.bonusPlusHeaderSubtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Dark Header with Arches Banner
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF181A20),
-                      borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(24.r),
-                      ),
-                      image: const DecorationImage(
-                        image: AssetImage(AppAssets.bonusBackBig),
-                        fit: BoxFit.cover,
-                        filterQuality: FilterQuality.high,
-                        alignment: Alignment.topRight,
-                      ),
-                    ),
-                    child: SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Back button
-                            GestureDetector(
-                              onTap: () => Navigator.of(context).pop(),
-                              child: Container(
-                                width: 38.r,
-                                height: 38.r,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.16),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.arrow_back,
-                                    color: Colors.white,
-                                    size: 20.r,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Gap(18.h),
-
-                            // "BRON PLUS" Pill Badge
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(20.r),
-                              ),
-                              child: Text(
-                                'BRON PLUS',
-                                style: GoogleFonts.unbounded(
-                                  fontSize: 10.5.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ),
-                            Gap(12.h),
-
-                            // Title
-                            Text(
-                              'Pik soatlarda ham\nbron kafolati',
-                              style: GoogleFonts.unbounded(
-                                fontSize: 22.sp,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                height: 1.25,
-                              ),
-                            ),
-                            Gap(8.h),
-
-                            // Subtitle
-                            Text(
-                              'Eng band kechalarda ham stol topasiz — va har bronda tejaysiz.',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13.5.sp,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white.withValues(alpha: 0.8),
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                   Gap(16.h),
 
                   // Padding for body items
@@ -330,23 +325,23 @@ class _BonusScreenState extends State<BonusScreen> {
                           child: Column(
                             children: [
                               _buildBenefitRow(
-                                title: 'Prioritet bron',
-                                subtitle: 'Pik soatlarda joylar avval Plus a\'zolarga ochiladi',
+                                title: AppStrings.benefitPriorityTitle,
+                                subtitle: AppStrings.benefitPrioritySubtitle,
                               ),
                               Gap(16.h),
                               _buildBenefitRow(
-                                title: 'Har bronda 10% chegirma',
-                                subtitle: 'Hamkor joylarda avtomatik hisoblanadi',
+                                title: AppStrings.benefitDiscountTitle,
+                                subtitle: AppStrings.benefitDiscountSubtitle,
                               ),
                               Gap(16.h),
                               _buildBenefitRow(
-                                title: 'Depozitsiz bron',
-                                subtitle: 'Kartangizda pul bloklanmaydi',
+                                title: AppStrings.benefitNoDepositTitle,
+                                subtitle: AppStrings.benefitNoDepositSubtitle,
                               ),
                               Gap(16.h),
                               _buildBenefitRow(
-                                title: 'Tug\'ilgan kun sovg\'asi',
-                                subtitle: 'Hamkor joylardan shaxsiy taklif',
+                                title: AppStrings.benefitBirthdayTitle,
+                                subtitle: AppStrings.benefitBirthdaySubtitle,
                               ),
                             ],
                           ),
@@ -356,8 +351,8 @@ class _BonusScreenState extends State<BonusScreen> {
                         // Plan 1: 1 oy
                         _buildPlanOption(
                           plan: SubscriptionPlan.monthly,
-                          title: '1 oy',
-                          subtitle: 'oyiga, istalgan payt bekor qilinadi',
+                          title: AppStrings.planMonthlyTitle,
+                          subtitle: AppStrings.planMonthlySubtitle,
                           price: '39 000',
                           isSelected: _selectedPlan == SubscriptionPlan.monthly,
                         ),
@@ -366,9 +361,9 @@ class _BonusScreenState extends State<BonusScreen> {
                         // Plan 2: 12 oy (with -25% badge)
                         _buildPlanOption(
                           plan: SubscriptionPlan.yearly,
-                          title: '12 oy',
+                          title: AppStrings.planYearlyTitle,
                           badgeText: '-25%',
-                          subtitle: 'oyiga · 390 000 so\'m bir marta',
+                          subtitle: AppStrings.planYearlySubtitle,
                           price: '29 000',
                           isSelected: _selectedPlan == SubscriptionPlan.yearly,
                         ),
@@ -413,8 +408,8 @@ class _BonusScreenState extends State<BonusScreen> {
                             )
                           : Text(
                               _selectedPlan == SubscriptionPlan.yearly
-                                  ? 'Plus\'ni yoqish · 390 000 so\'m'
-                                  : 'Plus\'ni yoqish · 39 000 so\'m',
+                                  ? AppStrings.activatePlusYearly
+                                  : AppStrings.activatePlusMonthly,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w700,
@@ -425,7 +420,7 @@ class _BonusScreenState extends State<BonusScreen> {
                   ),
                   Gap(8.h),
                   Text(
-                    'Istalgan payt bekor qilasiz. Bekor qilinsa, muddat oxirigacha ishlaydi.',
+                    AppStrings.cancelAnytimeNote,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5.sp,
@@ -577,7 +572,7 @@ class _BonusScreenState extends State<BonusScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Obuna',
+          AppStrings.subscriptionTitle,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18.sp,
             fontWeight: FontWeight.w700,
@@ -623,7 +618,7 @@ class _BonusScreenState extends State<BonusScreen> {
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Text(
-                      'BRON PLUS',
+                      AppStrings.bronPlus,
                       style: GoogleFonts.unbounded(
                         fontSize: 10.5.sp,
                         fontWeight: FontWeight.w700,
@@ -636,7 +631,7 @@ class _BonusScreenState extends State<BonusScreen> {
 
                   // Title: "Obuna faol"
                   Text(
-                    'Obuna faol',
+                    AppStrings.subscriptionActiveTitle,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 17.sp,
                       fontWeight: FontWeight.w700,
@@ -647,7 +642,7 @@ class _BonusScreenState extends State<BonusScreen> {
 
                   // Subtitle
                   Text(
-                    '25-dekabr 2026 gacha · avtomatik uzaytiriladi',
+                    AppStrings.subscriptionActiveUntil,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w400,
@@ -684,7 +679,7 @@ class _BonusScreenState extends State<BonusScreen> {
                       ),
                       Gap(4.h),
                       Text(
-                        'Plus bilan tejadingiz',
+                        AppStrings.savingsWithPlusLabel,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5.sp,
                           fontWeight: FontWeight.w400,
@@ -706,7 +701,7 @@ class _BonusScreenState extends State<BonusScreen> {
                       ),
                       Gap(4.h),
                       Text(
-                        'bron',
+                        AppStrings.bookingsCountLabel,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5.sp,
                           fontWeight: FontWeight.w400,
@@ -722,7 +717,7 @@ class _BonusScreenState extends State<BonusScreen> {
 
             // FAOL IMTIYOZLAR Header
             Text(
-              'FAOL IMTIYOZLAR',
+              AppStrings.activeBenefitsHeader,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5.sp,
                 fontWeight: FontWeight.w700,
@@ -743,13 +738,13 @@ class _BonusScreenState extends State<BonusScreen> {
               ),
               child: Column(
                 children: [
-                  _buildSimpleBenefitItem('Prioritet bron'),
+                  _buildSimpleBenefitItem(AppStrings.benefitPriorityTitle),
                   Gap(14.h),
-                  _buildSimpleBenefitItem('Har bronda 10% chegirma'),
+                  _buildSimpleBenefitItem(AppStrings.benefitDiscountTitle),
                   Gap(14.h),
-                  _buildSimpleBenefitItem('Depozitsiz bron'),
+                  _buildSimpleBenefitItem(AppStrings.benefitNoDepositTitle),
                   Gap(14.h),
-                  _buildSimpleBenefitItem('Tug\'ilgan kun sovg\'asi'),
+                  _buildSimpleBenefitItem(AppStrings.benefitBirthdayTitle),
                 ],
               ),
             ),
@@ -772,7 +767,7 @@ class _BonusScreenState extends State<BonusScreen> {
                     padding: EdgeInsets.symmetric(vertical: 16.h),
                     child: Center(
                       child: Text(
-                        'Obunani bekor qilish',
+                        AppStrings.cancelSubscriptionButton,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14.5.sp,
                           fontWeight: FontWeight.w600,

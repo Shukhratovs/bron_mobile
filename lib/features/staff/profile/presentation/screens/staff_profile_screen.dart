@@ -39,6 +39,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
   Future<void> _logout() async {
     final storage = StaffSession.localStorage;
+    await StaffSession.pushService.unregisterToken();
     await storage.clear();
     if (!mounted) return;
     Navigator.pushReplacement(
@@ -91,7 +92,15 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary)),
-          Text(value, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Gap(8.w),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            ),
+          ),
         ],
       ),
     );

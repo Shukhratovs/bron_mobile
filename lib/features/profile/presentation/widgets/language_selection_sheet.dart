@@ -70,8 +70,9 @@ class _LanguageSelectionSheetState extends State<LanguageSelectionSheet> {
             ),
             Gap(20.h),
 
-            // Language Options
-            ...AppLanguage.values.map((lang) {
+            // Language Options — faqat uz/ru: backend hozircha shu ikkitasini
+            // qabul qiladi, `en` yuborilsa 422 (mijoz/00-kirish-va-profil.md §4).
+            ...AppLanguage.values.where((lang) => lang != AppLanguage.en).map((lang) {
               final isSelected = _selectedLanguage == lang;
               return GestureDetector(
                 onTap: () {

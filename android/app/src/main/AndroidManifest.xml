@@ -3,9 +3,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:label="bron_mobile"
-        android:name="${applicationName}"
+        android:name=".MainApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -38,10 +39,6 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="bron_notifications" />
-        <!-- Yandex MapKit API key — replace with your real key -->
-        <meta-data
-            android:name="com.yandex.android.mapkit.ApiKey"
-            android:value="b087e69a-96e9-4ecc-a404-0f30278dc140" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

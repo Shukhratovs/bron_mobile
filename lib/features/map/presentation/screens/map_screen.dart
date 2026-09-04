@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,7 +11,11 @@ import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
+import '../../../../core/network/network_exceptions.dart';
+import '../../../../core/widgets/app_state_view.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_icon.dart';
@@ -45,6 +50,8 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoading = true;
   bool _mapReady = false;
   bool _mapError = false;
+  bool _pinsLoadFailed = false;
+  bool _pinsOffline = false;
   String? _selectedKind;
 
   // Pin image caches
@@ -54,6 +61,73 @@ class _MapScreenState extends State<MapScreen> {
 
   // Tashkent center
   static const _fallbackCenter = Point(latitude: 41.314581, longitude: 69.237562);
+
+  // O'zbekiston chegarasi (soddalashtirilgan, 54 nuqta) — faqat vizual
+  // chegara chizig'i va xaritani mamlakat hududi bilan cheklash uchun.
+  static const _uzbekistanBorder = <Point>[
+    Point(latitude: 37.362784, longitude: 66.518607),
+    Point(latitude: 37.974685, longitude: 66.54615),
+    Point(latitude: 38.402695, longitude: 65.215999),
+    Point(latitude: 38.892407, longitude: 64.170223),
+    Point(latitude: 39.363257, longitude: 63.518015),
+    Point(latitude: 40.053886, longitude: 62.37426),
+    Point(latitude: 41.084857, longitude: 61.882714),
+    Point(latitude: 41.26637, longitude: 61.547179),
+    Point(latitude: 41.220327, longitude: 60.465953),
+    Point(latitude: 41.425146, longitude: 60.083341),
+    Point(latitude: 42.223082, longitude: 59.976422),
+    Point(latitude: 42.751551, longitude: 58.629011),
+    Point(latitude: 42.170553, longitude: 57.78653),
+    Point(latitude: 41.826026, longitude: 56.932215),
+    Point(latitude: 41.32231, longitude: 57.096391),
+    Point(latitude: 41.308642, longitude: 55.968191),
+    Point(latitude: 44.995858, longitude: 55.928917),
+    Point(latitude: 45.586804, longitude: 58.503127),
+    Point(latitude: 45.500014, longitude: 58.689989),
+    Point(latitude: 44.784037, longitude: 60.239972),
+    Point(latitude: 44.405817, longitude: 61.05832),
+    Point(latitude: 43.504477, longitude: 62.0133),
+    Point(latitude: 43.650075, longitude: 63.185787),
+    Point(latitude: 43.728081, longitude: 64.900824),
+    Point(latitude: 42.99766, longitude: 66.098012),
+    Point(latitude: 41.994646, longitude: 66.023392),
+    Point(latitude: 41.987644, longitude: 66.510649),
+    Point(latitude: 41.168444, longitude: 66.714047),
+    Point(latitude: 41.135991, longitude: 67.985856),
+    Point(latitude: 40.662325, longitude: 68.259896),
+    Point(latitude: 40.668681, longitude: 68.632483),
+    Point(latitude: 41.384244, longitude: 69.070027),
+    Point(latitude: 42.081308, longitude: 70.388965),
+    Point(latitude: 42.266154, longitude: 70.962315),
+    Point(latitude: 42.167711, longitude: 71.259248),
+    Point(latitude: 41.519998, longitude: 70.420022),
+    Point(latitude: 41.143587, longitude: 71.157859),
+    Point(latitude: 41.3929, longitude: 71.870115),
+    Point(latitude: 40.866033, longitude: 73.055417),
+    Point(latitude: 40.145844, longitude: 71.774875),
+    Point(latitude: 40.244366, longitude: 71.014198),
+    Point(latitude: 40.218527, longitude: 70.601407),
+    Point(latitude: 40.496495, longitude: 70.45816),
+    Point(latitude: 40.960213, longitude: 70.666622),
+    Point(latitude: 40.727824, longitude: 69.329495),
+    Point(latitude: 40.086158, longitude: 69.011633),
+    Point(latitude: 39.533453, longitude: 68.536416),
+    Point(latitude: 39.580478, longitude: 67.701429),
+    Point(latitude: 39.140144, longitude: 67.44222),
+    Point(latitude: 38.901553, longitude: 68.176025),
+    Point(latitude: 38.157025, longitude: 68.392033),
+    Point(latitude: 37.144994, longitude: 67.83),
+    Point(latitude: 37.356144, longitude: 67.075782),
+    Point(latitude: 37.362784, longitude: 66.518607),
+  ];
+
+  // Chegaradan biroz kengroq — foydalanuvchi panorama qilganda hudud
+  // qirg'og'ida "devorga urilib qolgandek" tuyulmasligi uchun bir oz
+  // bo'sh joy qoldiriladi.
+  static const _uzbekistanBounds = BoundingBox(
+    northEast: Point(latitude: 46.3, longitude: 73.8),
+    southWest: Point(latitude: 36.4, longitude: 55.2),
+  );
 
   @override
   void initState() {
@@ -139,22 +213,35 @@ class _MapScreenState extends State<MapScreen> {
     return byteData!.buffer.asUint8List();
   }
 
+  // Foydalanuvchi joylashuvi belgisi ataylab muassasa pinlaridan (qizil
+  // "B" belgisi) butunlay boshqacha uslubda — havorang, soyali "joriy
+  // joylashuv" nuqtasi (Google/Apple xaritalaridagi kabi), aralashtirib
+  // yubormaslik uchun.
+  static const _userDotColor = Color(0xFF2F80ED);
+
   Future<Uint8List> _renderUserDot() async {
-    const double size = 32.0;
+    const double size = 40.0;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, size, size));
+    const center = Offset(size / 2, size / 2);
 
     // Outer glow
-    final glowPaint = Paint()..color = const Color(0xFFDC3009).withValues(alpha: 0.2);
-    canvas.drawCircle(const Offset(size / 2, size / 2), size / 2, glowPaint);
+    final glowPaint = Paint()..color = _userDotColor.withValues(alpha: 0.18);
+    canvas.drawCircle(center, size / 2, glowPaint);
+
+    // Soft shadow under the ring
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawCircle(const Offset(size / 2, size / 2 + 1), 10, shadowPaint);
 
     // White ring
     final whitePaint = Paint()..color = Colors.white;
-    canvas.drawCircle(const Offset(size / 2, size / 2), 8, whitePaint);
+    canvas.drawCircle(center, 10, whitePaint);
 
-    // Blue dot
-    final dotPaint = Paint()..color = const Color(0xFFDC3009);
-    canvas.drawCircle(const Offset(size / 2, size / 2), 6, dotPaint);
+    // Blue core dot
+    final dotPaint = Paint()..color = _userDotColor;
+    canvas.drawCircle(center, 7, dotPaint);
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), size.toInt());
@@ -193,7 +280,11 @@ class _MapScreenState extends State<MapScreen> {
   // ─── Data loading ──────────────────────────────────────────────────
 
   Future<void> _loadPins() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _pinsLoadFailed = false;
+      _pinsOffline = false;
+    });
     final result = await _repository.getVenuesMap(kind: _selectedKind);
     if (!mounted) return;
     switch (result) {
@@ -214,8 +305,12 @@ class _MapScreenState extends State<MapScreen> {
           });
           _ensureDetail(data.first.id);
         }
-      case Failure():
-        setState(() => _isLoading = false);
+      case Failure(:final exception):
+        setState(() {
+          _isLoading = false;
+          _pinsLoadFailed = true;
+          _pinsOffline = exception is NoInternetException;
+        });
     }
   }
 
@@ -305,7 +400,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
               Gap(16.h),
               Text(
-                'Yo\'nalish',
+                AppStrings.categoryLabel,
                 style: GoogleFonts.plusJakartaSans(fontSize: 18.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20)),
               ),
               Gap(14.h),
@@ -314,7 +409,7 @@ class _MapScreenState extends State<MapScreen> {
                 runSpacing: 8.h,
                 children: [
                   ChoiceChip(
-                    label: const Text('Barchasi'),
+                    label: Text(AppStrings.filterAll),
                     selected: _selectedKind == null,
                     onSelected: (_) {
                       Navigator.pop(context);
@@ -343,10 +438,23 @@ class _MapScreenState extends State<MapScreen> {
 
   // ─── Map objects ───────────────────────────────────────────────────
 
-  List<MapObject> get _mapObjects {
-    if (_pinNormal == null || _pinSelected == null) return [];
+  static const _uzbekistanBorderPolygon = PolygonMapObject(
+    mapId: MapObjectId('uzbekistan_border'),
+    polygon: Polygon(
+      outerRing: LinearRing(points: _uzbekistanBorder),
+      innerRings: [],
+    ),
+    fillColor: Colors.transparent,
+    strokeColor: Color(0x33181A20),
+    strokeWidth: 1.5,
+    zIndex: 0,
+    consumeTapEvents: false,
+  );
 
-    return _pins.asMap().entries.map((entry) {
+  List<MapObject> get _mapObjects {
+    if (_pinNormal == null || _pinSelected == null) return [_uzbekistanBorderPolygon];
+
+    final venuePins = _pins.asMap().entries.map((entry) {
       final index = entry.key;
       final pin = entry.value;
       final isSelected = index == _selectedVenueIndex;
@@ -365,13 +473,17 @@ class _MapScreenState extends State<MapScreen> {
         zIndex: isSelected ? 10 : 1,
         onTap: (_, __) => _onVenueSelected(index),
       );
-    }).toList();
+    });
+
+    return [_uzbekistanBorderPolygon, ...venuePins];
   }
 
   // ─── Build ─────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, langState) {
     return Scaffold(
       backgroundColor: const Color(0xFF1E2024),
       body: Stack(
@@ -380,7 +492,16 @@ class _MapScreenState extends State<MapScreen> {
           if (_mapReady && !_mapError)
             YandexMap(
               mapType: MapType.vector,
-              logoPadding: const MapPadding(horizontal: 80, vertical: 100),
+              logoPadding:  MapPadding(horizontal: 80, vertical: (MediaQuery.of(context).size.height * 2.5).toInt()),
+              // Xarita faqat O'zbekiston hududi bilan cheklanadi — boshqa
+              // davlatlarga panorama qilib chiqib ketib bo'lmaydi, zoom
+              // qilib uzoqlashtirish ham butun mamlakatni ko'rsatadigan
+              // darajadan pastga (kichikroq zoom qiymatiga) tushmaydi.
+              cameraBounds: const CameraBounds(
+                minZoom: 5.2,
+                maxZoom: 18,
+                latLngBounds: _uzbekistanBounds,
+              ),
               onMapCreated: (controller) {
                 _mapController = controller;
 
@@ -423,8 +544,8 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ),
                     accuracyCircle: view.accuracyCircle.copyWith(
-                      fillColor: const Color(0xFFDC3009).withValues(alpha: 0.1),
-                      strokeColor: const Color(0xFFDC3009).withValues(alpha: 0.3),
+                      fillColor: _userDotColor.withValues(alpha: 0.1),
+                      strokeColor: _userDotColor.withValues(alpha: 0.3),
                       strokeWidth: 1,
                     ),
                   );
@@ -433,22 +554,11 @@ class _MapScreenState extends State<MapScreen> {
               },
             )
           else if (_mapError)
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.map_outlined, size: 56.r, color: const Color(0xFF9CA3AF)),
-                  Gap(12.h),
-                  Text(
-                    'Xarita yuklanmadi',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF6B7280)),
-                  ),
-                  Gap(8.h),
-                  TextButton(
-                    onPressed: () => setState(() { _mapError = false; _mapReady = true; }),
-                    child: const Text('Qayta urinish'),
-                  ),
-                ],
+            Container(
+              color: Colors.white,
+              child: AppStateView.error(
+                title: AppStrings.mapLoadFailed,
+                onRetry: () => setState(() { _mapError = false; _mapReady = true; }),
               ),
             )
           else
@@ -516,7 +626,7 @@ class _MapScreenState extends State<MapScreen> {
           // My location FAB
           Positioned(
             right: 16.w,
-            bottom: 290.h,
+            bottom: 200.h,
             child: GestureDetector(
               onTap: _goToUserLocation,
               child: Container(
@@ -641,9 +751,49 @@ class _MapScreenState extends State<MapScreen> {
                   },
                 ),
               ),
+            )
+          else if (_pinsLoadFailed && !_isLoading)
+            // Xarita o'zi ishlayapti, faqat muassasalar ro'yxati
+            // kelmadi — xaritani to'sib qo'ymaslik uchun pastda ixcham
+            // karta, to'liq ekran holatida emas.
+            Positioned(
+              left: 16.w,
+              right: 16.w,
+              bottom: 100.h,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 6))],
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _pinsOffline ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                      size: 20.r,
+                      color: _pinsOffline ? AppColors.warning : AppColors.error,
+                    ),
+                    Gap(10.w),
+                    Expanded(
+                      child: Text(
+                        _pinsOffline ? AppStrings.noInternetTitle : AppStrings.somethingWentWrong,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, fontWeight: FontWeight.w600, color: const Color(0xFF181A20)),
+                      ),
+                    ),
+                    Gap(8.w),
+                    TextButton(
+                      onPressed: _loadPins,
+                      child: Text(AppStrings.retry, style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),
+    );
+      },
     );
   }
 

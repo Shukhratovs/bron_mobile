@@ -56,6 +56,16 @@ class CustomBottomNavBar extends StatefulWidget {
   static const Color activeTint = Color(0xFFDC3009);
   static const Color inactiveTint = Color(0xFF6B7280);
 
+  /// Suzuvchi panel butunlay ko'rinishi uchun scroll kontent pastida
+  /// qoldirilishi kerak bo'lgan joy: panelning o'zi (~60.h: konteyner
+  /// padding 12 + item padding 12 + ikonka 20 + gap 2 + matn ~14) + uning
+  /// pastki bo'shlig'i (24.h, `build()`dagi `EdgeInsets.fromLTRB` bilan bir
+  /// xil) + kichik nafas oralig'i (12.h). Oldin har ekran o'zi taxminiy
+  /// (120.h/100.h) raqam yozgan edi — ba'zilarida panel tagida ortiqcha
+  /// katta bo'sh joy qolar edi.
+  static double reservedBottomSpace(BuildContext context) =>
+      96.h + MediaQuery.of(context).padding.bottom;
+
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
 }
@@ -122,9 +132,13 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final navItems = CustomBottomNavBar.items;
-
+    // 3 tugmali Android navigatsiyasida panel tizim paneli ortida
+    // qolib ketmasligi uchun butun ilova (`MaterialApp.builder`, main.dart)
+    // allaqachon `SafeArea(bottom: true)` bilan yuqoriga suriladi — shuning
+    // uchun bu yerda haqiqiy tizim insetini qayta qo'shish shart emas
+    // (aks holda panel keraksiz baland "ko'tarilib" ko'rinadi).
     return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
+      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 12.h),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(40.r),
         child: BackdropFilter(

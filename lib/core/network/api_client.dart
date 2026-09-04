@@ -4,11 +4,11 @@ import 'auth_local_storage.dart';
 import 'network_exceptions.dart';
 
 abstract class ApiClient {
-  Future<dynamic> get(String url, {Map<String, String>? headers});
-  Future<dynamic> post(String url, {Map<String, String>? headers, dynamic body});
-  Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body});
-  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body});
-  Future<dynamic> delete(String url, {Map<String, String>? headers});
+  Future<dynamic> get(String url, {Map<String, String>? headers, bool suppressAuthClear = false});
+  Future<dynamic> post(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false});
+  Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false});
+  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false});
+  Future<dynamic> delete(String url, {Map<String, String>? headers, bool suppressAuthClear = false});
 }
 
 class StandardApiClient implements ApiClient {
@@ -41,7 +41,7 @@ class StandardApiClient implements ApiClient {
   }
 
   @override
-  Future<dynamic> get(String url, {Map<String, String>? headers}) async {
+  Future<dynamic> get(String url, {Map<String, String>? headers, bool suppressAuthClear = false}) async {
     try {
       final uri = Uri.parse(url);
       final request = await _httpClient.getUrl(uri);
@@ -50,9 +50,9 @@ class StandardApiClient implements ApiClient {
         request.headers.set(key, value);
       });
       final response = await request.close();
-      return await _processResponse(response);
+      return await _processResponse(response, suppressAuthClear: suppressAuthClear);
     } on SocketException {
-      throw const NoInternetException();
+      throw NoInternetException();
     } catch (e) {
       if (e is NetworkException) rethrow;
       throw NetworkException(message: e.toString());
@@ -60,7 +60,7 @@ class StandardApiClient implements ApiClient {
   }
 
   @override
-  Future<dynamic> post(String url, {Map<String, String>? headers, dynamic body}) async {
+  Future<dynamic> post(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false}) async {
     try {
       final uri = Uri.parse(url);
       final request = await _httpClient.postUrl(uri);
@@ -72,9 +72,9 @@ class StandardApiClient implements ApiClient {
         request.write(jsonEncode(body));
       }
       final response = await request.close();
-      return await _processResponse(response);
+      return await _processResponse(response, suppressAuthClear: suppressAuthClear);
     } on SocketException {
-      throw const NoInternetException();
+      throw NoInternetException();
     } catch (e) {
       if (e is NetworkException) rethrow;
       throw NetworkException(message: e.toString());
@@ -82,7 +82,7 @@ class StandardApiClient implements ApiClient {
   }
 
   @override
-  Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body}) async {
+  Future<dynamic> put(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false}) async {
     try {
       final uri = Uri.parse(url);
       final request = await _httpClient.putUrl(uri);
@@ -94,9 +94,9 @@ class StandardApiClient implements ApiClient {
         request.write(jsonEncode(body));
       }
       final response = await request.close();
-      return await _processResponse(response);
+      return await _processResponse(response, suppressAuthClear: suppressAuthClear);
     } on SocketException {
-      throw const NoInternetException();
+      throw NoInternetException();
     } catch (e) {
       if (e is NetworkException) rethrow;
       throw NetworkException(message: e.toString());
@@ -104,7 +104,7 @@ class StandardApiClient implements ApiClient {
   }
 
   @override
-  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body}) async {
+  Future<dynamic> patch(String url, {Map<String, String>? headers, dynamic body, bool suppressAuthClear = false}) async {
     try {
       final uri = Uri.parse(url);
       final request = await _httpClient.patchUrl(uri);
@@ -116,9 +116,9 @@ class StandardApiClient implements ApiClient {
         request.write(jsonEncode(body));
       }
       final response = await request.close();
-      return await _processResponse(response);
+      return await _processResponse(response, suppressAuthClear: suppressAuthClear);
     } on SocketException {
-      throw const NoInternetException();
+      throw NoInternetException();
     } catch (e) {
       if (e is NetworkException) rethrow;
       throw NetworkException(message: e.toString());
@@ -126,7 +126,7 @@ class StandardApiClient implements ApiClient {
   }
 
   @override
-  Future<dynamic> delete(String url, {Map<String, String>? headers}) async {
+  Future<dynamic> delete(String url, {Map<String, String>? headers, bool suppressAuthClear = false}) async {
     try {
       final uri = Uri.parse(url);
       final request = await _httpClient.deleteUrl(uri);
@@ -135,16 +135,16 @@ class StandardApiClient implements ApiClient {
         request.headers.set(key, value);
       });
       final response = await request.close();
-      return await _processResponse(response);
+      return await _processResponse(response, suppressAuthClear: suppressAuthClear);
     } on SocketException {
-      throw const NoInternetException();
+      throw NoInternetException();
     } catch (e) {
       if (e is NetworkException) rethrow;
       throw NetworkException(message: e.toString());
     }
   }
 
-  Future<dynamic> _processResponse(HttpClientResponse response) async {
+  Future<dynamic> _processResponse(HttpClientResponse response, {bool suppressAuthClear = false}) async {
     final responseBody = await response.transform(utf8.decoder).join();
     dynamic decoded;
     if (responseBody.isNotEmpty) {
@@ -161,7 +161,7 @@ class StandardApiClient implements ApiClient {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return decoded;
     } else if (response.statusCode == 401) {
-      if (authLocalStorage != null) {
+      if (authLocalStorage != null && !suppressAuthClear) {
         await authLocalStorage!.clear();
       }
       final message = _extractErrorMessage(decoded) ?? 'Tizimga qaytadan kiring';

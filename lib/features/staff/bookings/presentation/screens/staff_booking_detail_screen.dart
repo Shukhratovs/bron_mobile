@@ -10,9 +10,11 @@ import '../../../core/staff_session.dart';
 import '../../data/datasources/staff_booking_remote_data_source.dart' show StaffBookingRemoteDataSourceImpl, newIdempotencyKey;
 import '../../data/repositories/staff_booking_repository_impl.dart';
 import '../../domain/repositories/staff_booking_repository.dart';
+import '../widgets/staff_table_select_sheet.dart';
 import '../../../../../core/widgets/app_icon.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/widgets/shimmer_skeleton.dart';
+import '../../../../../core/widgets/app_toast.dart';
 
 /// Figma: `Bron detali` (`292:468`), `Mehmon kelmadi` (`787:1132`).
 class StaffBookingDetailScreen extends StatefulWidget {
@@ -78,7 +80,13 @@ class _StaffBookingDetailScreenState extends State<StaffBookingDetailScreen> {
           final allowedRaw = (exception.body?['allowed'] as List?)?.map((e) => e.toString()).toSet() ?? {};
           setState(() => _allowed = allowedRaw.map(BookingEntity.parseStatus).toSet());
         }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.message), backgroundColor: AppColors.error));
+        // `table_busy` javobida qaysi stollar band ekani `tables` maydonida
+        // qaytadi (02-bugun-va-qr.md §5) — umumiy xabar o'rniga shuni
+        // ko'rsatamiz.
+        final message = exception.code == 'table_busy'
+            ? 'Stol band: ${(exception.body?['tables'] as List?)?.join(', ') ?? exception.message}'
+            : exception.message;
+        AppToast.error(context, message);
     }
   }
 
@@ -135,6 +143,14 @@ class _StaffBookingDetailScreenState extends State<StaffBookingDetailScreen> {
         onSelected: (reason) => _runAction(() => _repository.noShow(widget.bookingId, reason: reason, idempotencyKey: newIdempotencyKey())),
       ),
     );
+  }
+
+  Future<void> _onChangeTable() async {
+    final booking = _booking;
+    if (booking == null) return;
+    final tableIds = await StaffTableSelectSheet.show(context, booking);
+    if (tableIds == null || !mounted) return;
+    _runAction(() => _repository.setTables(widget.bookingId, tableIds, idempotencyKey: newIdempotencyKey()));
   }
 
   void _onCancel() {
@@ -208,7 +224,38 @@ class _StaffBookingDetailScreenState extends State<StaffBookingDetailScreen> {
                   Gap(12.h),
                   _detailRow('Vaqt', '${formatDateShort(booking.startsAt.toLocal())} · ${formatTime(booking.startsAt.toLocal())}'),
                   _detailRow('Mehmonlar', '${booking.guests} kishi'),
-                  _detailRow('Stol', booking.tableLabel.isEmpty ? '—' : booking.tableLabel),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 6.h),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Stol', style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: AppColors.textSecondary)),
+                        Gap(8.w),
+                        Flexible(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  booking.tableLabel.isEmpty ? '—' : booking.tableLabel,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                ),
+                              ),
+                              Gap(6.w),
+                              GestureDetector(
+                                onTap: _isSubmitting ? null : _onChangeTable,
+                                child: Text(
+                                  'O\'zgartirish',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5.sp, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   _detailRow('Manba', booking.source),
                   if (booking.guestNote != null) _detailRow('Mehmon izohi', booking.guestNote!),
                   if (booking.staffNote != null) _detailRow('Ichki izoh', booking.staffNote!),

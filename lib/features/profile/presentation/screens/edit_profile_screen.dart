@@ -1,16 +1,24 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
+import '../../../../core/network/app_session.dart';
+import '../../../../core/network/auth_local_storage.dart';
 import '../../domain/entities/user_profile_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../core/widgets/app_avatar_image.dart';
 import '../../../../core/widgets/app_icon.dart';
+import '../../../../core/widgets/app_toast.dart';
+import '../widgets/photo_source_sheet.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfileEntity user;
@@ -30,7 +38,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
   late final TextEditingController _birthDateController;
+  late String _avatarPath;
   bool _isSaving = false;
+
+  bool get _hasCustomAvatar => !_avatarPath.startsWith('assets/');
 
   @override
   void initState() {
@@ -42,6 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ? widget.user.birthDate!
           : '',
     );
+    _avatarPath = widget.user.avatarUrl ?? AppAssets.me;
   }
 
   @override
@@ -83,6 +95,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _changePhoto() async {
+    final action = await PhotoSourceSheet.show(context, canRemove: _hasCustomAvatar);
+    if (action == null || !mounted) return;
+
+    if (action == PhotoSourceAction.remove) {
+      setState(() => _avatarPath = AppAssets.me);
+      return;
+    }
+
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: action == PhotoSourceAction.camera ? ImageSource.camera : ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      if (picked == null || !mounted) return;
+
+      final savedPath = await _copyToPermanentStorage(picked.path);
+      if (!mounted) return;
+      setState(() => _avatarPath = savedPath);
+    } catch (_) {
+      if (mounted) AppToast.error(context, AppStrings.imagePickFailed);
+    }
+  }
+
+  /// `image_picker` vaqtinchalik keshga (`cache/`) qaytaradi — OS uni
+  /// istalgan payt tozalashi mumkin. Ilova qayta ochilganda ham rasm
+  /// ko'rinishi uchun doimiy hujjatlar papkasiga, sobit nom bilan
+  /// nusxalanadi (qayta tanlansa avvalgisi ustidan yoziladi).
+  Future<String> _copyToPermanentStorage(String sourcePath) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final ext = sourcePath.contains('.') ? sourcePath.split('.').last : 'jpg';
+    final destPath = '${dir.path}/profile_avatar.$ext';
+    final copied = await File(sourcePath).copy(destPath);
+    return copied.path;
+  }
+
   Future<void> _saveProfile() async {
     setState(() => _isSaving = true);
 
@@ -90,6 +140,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
       birthDate: _birthDateController.text.trim(),
+      avatarUrl: _avatarPath,
     );
 
     final result = await widget.repository.updateProfile(updated);
@@ -99,20 +150,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     switch (result) {
       case Success(:final data):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.profileUpdatedSuccess),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        Navigator.of(context).pop(data);
+        // Backend'da avatar maydoni yo'q — server javobidagi
+        // `avatarUrl` doim standart bo'ladi, shuning uchun mahalliy
+        // tanlangan rasmni shu yerda qayta qo'shamiz va qurilmada
+        // saqlaymiz (ProfileRepositoryImpl.getUserProfile() keyingi
+        // yuklashlarda shu qiymatni o'qiydi).
+        final storage = AppSession.authLocalStorage;
+        if (storage is AuthLocalStorageImpl) {
+          if (_hasCustomAvatar) {
+            await storage.saveLocalAvatarPath(_avatarPath);
+          } else {
+            await storage.clearLocalAvatarPath();
+          }
+        }
+        if (!mounted) return;
+        AppToast.success(context, AppStrings.profileUpdatedSuccess);
+        Navigator.of(context).pop(data.copyWith(avatarUrl: _avatarPath));
       case Failure(:final exception):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(exception.message),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppToast.error(context, exception.message);
     }
   }
 
@@ -124,8 +179,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final avatarPath = widget.user.avatarUrl ?? AppAssets.me;
-
     return BlocBuilder<LanguageCubit, LanguageState>(
       builder: (context, langState) {
     return GestureDetector(
@@ -175,18 +228,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   shape: BoxShape.circle,
                                   color: Color(0xFFF3F4F6),
                                 ),
-                                child: ClipOval(
-                                  child: Image.asset(
-                                    avatarPath,
-                                    fit: BoxFit.cover,
-                                    filterQuality: FilterQuality.high,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      color: AppColors.primarySoft,
-                                      child: Icon(
-                                        Icons.person_rounded,
-                                        size: 48.r,
-                                        color: AppColors.primary,
-                                      ),
+                                child: AppAvatarImage(
+                                  avatarPath: _avatarPath,
+                                  size: 90.r,
+                                  fallback: Container(
+                                    color: AppColors.primarySoft,
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      size: 48.r,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -211,14 +261,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           Gap(12.h),
                           GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Rasm tanlash oynasi ochilmoqda...'),
-                                  backgroundColor: AppColors.primary,
-                                ),
-                              );
-                            },
+                            onTap: _changePhoto,
                             child: Text(
                               AppStrings.changePhoto,
                               style: GoogleFonts.plusJakartaSans(
@@ -239,7 +282,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _buildTextInput(
                       controller: _firstNameController,
                       prefixIcon: Icons.person_outline_rounded,
-                      hintText: 'Ismingizni kiriting',
+                      hintText: AppStrings.firstNameHint,
                     ),
                     Gap(16.h),
 
@@ -249,7 +292,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _buildTextInput(
                       controller: _lastNameController,
                       prefixIcon: Icons.person_outline_rounded,
-                      hintText: 'Familiyangizni kiriting',
+                      hintText: AppStrings.lastNameHint,
                     ),
                     Gap(16.h),
 
@@ -322,7 +365,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     Gap(6.h),
                     Text(
-                      "Raqamni o'zgartirish uchun qo'llab-quvvatlashga murojaat qiling",
+                      AppStrings.phoneChangeNote,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w400,
@@ -356,7 +399,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: Text(
                                 _birthDateController.text.isNotEmpty
                                     ? _birthDateController.text
-                                    : 'KK / OO / YYYY',
+                                    : AppStrings.birthDatePlaceholder,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14.5.sp,
                                   fontWeight: _birthDateController.text.isNotEmpty
@@ -374,7 +417,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     Gap(6.h),
                     Text(
-                      "Tug'ilgan kuningizda restoranlardan bonus olasiz",
+                      AppStrings.birthDateBonusNote,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w400,

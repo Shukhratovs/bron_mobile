@@ -9,6 +9,7 @@ import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/app_state_view.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../venue/data/datasources/venue_remote_data_source.dart';
 import '../../../venue/data/repositories/venue_repository_impl.dart';
@@ -25,6 +26,7 @@ import 'booking_detail_screen.dart';
 import 'stol_boshadi_screen.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../main/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class BookingsScreen extends StatefulWidget {
   final BookingRepository? repository;
@@ -37,51 +39,89 @@ class BookingsScreen extends StatefulWidget {
   State<BookingsScreen> createState() => _BookingsScreenState();
 }
 
-class _BookingsScreenState extends State<BookingsScreen> {
+class _BookingsScreenState extends State<BookingsScreen> with SingleTickerProviderStateMixin {
   late final BookingRepository _repository;
   late final WaitlistRepository _waitlistRepository;
   late final VenueRepository _venueRepository;
+  late final TabController _tabController;
 
-  int _selectedTabIndex = 0; // 0: Faol, 1: O'tgan
-  bool _isLoading = true;
-  List<BookingEntity> _bookings = [];
-  List<WaitlistEntity> _waitlist = [];
   final Map<String, String> _venueNames = {};
+
+  // Har bir tab o'z holatini alohida saqlaydi — shu tufayli swipe qilib
+  // o'tishda ikkinchi tab qayta yuklanishini kutish shart emas (ikkalasi
+  // ham bir vaqtda, mustaqil yuklanadi).
+  bool _isActiveLoading = true;
+  List<BookingEntity> _activeBookings = [];
+  List<WaitlistEntity> _waitlist = [];
+
+  bool _isHistoryLoading = true;
+  List<BookingEntity> _historyBookings = [];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _repository = widget.repository ??
         BookingRepositoryImpl(remoteDataSource: BookingRemoteDataSourceImpl(apiClient: AppSession.apiClient));
     _waitlistRepository = widget.waitlistRepository ??
         WaitlistRepositoryImpl(remoteDataSource: WaitlistRemoteDataSourceImpl(apiClient: AppSession.apiClient));
     _venueRepository = widget.venueRepository ??
         VenueRepositoryImpl(remoteDataSource: VenueRemoteDataSourceImpl(apiClient: AppSession.apiClient));
-    _load();
+    _loadActive();
+    _loadHistory();
   }
 
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
-    final tab = _selectedTabIndex == 0 ? 'faol' : 'otgan';
-    final bookingsResult = await _repository.getBookings(tab: tab);
-    final waitlistResult =
-        _selectedTabIndex == 0 ? await _waitlistRepository.getMine() : ApiResult<List<WaitlistEntity>>.success(const []);
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadActive() async {
+    setState(() => _isActiveLoading = true);
+    final bookingsResult = await _repository.getBookings(tab: 'faol');
+    final waitlistResult = await _waitlistRepository.getMine();
     if (!mounted) return;
 
     if (bookingsResult case Success(:final data)) {
-      setState(() => _bookings = data);
-      for (final b in _bookings) {
+      setState(() => _activeBookings = data);
+      for (final b in _activeBookings) {
         _resolveVenueName(b.venueId);
       }
     } else {
-      setState(() => _bookings = []);
+      setState(() => _activeBookings = []);
     }
     if (waitlistResult case Success(:final data)) {
       setState(() => _waitlist = data.where((w) => w.status != WaitlistStatus.chiqarildi).toList());
     } else {
       setState(() => _waitlist = []);
     }
-    setState(() => _isLoading = false);
+    setState(() => _isActiveLoading = false);
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() => _isHistoryLoading = true);
+    final result = await _repository.getBookings(tab: 'otgan');
+    if (!mounted) return;
+    switch (result) {
+      case Success(:final data):
+        setState(() {
+          _historyBookings = data;
+          _isHistoryLoading = false;
+        });
+        for (final b in _historyBookings) {
+          _resolveVenueName(b.venueId);
+        }
+      case Failure():
+        setState(() {
+          _historyBookings = [];
+          _isHistoryLoading = false;
+        });
+    }
+  }
+
+  Future<void> _reloadCurrentTab() {
+    return _tabController.index == 0 ? _loadActive() : _loadHistory();
   }
 
   Future<void> _resolveVenueName(String venueId) async {
@@ -96,7 +136,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
   void _openBookingDetail(String bookingId) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => BookingDetailScreen(bookingId: bookingId)),
-    ).then((_) => _load());
+    ).then((_) => _reloadCurrentTab());
   }
 
   void _openStolBoshadi(WaitlistEntity entry) {
@@ -104,108 +144,182 @@ class _BookingsScreenState extends State<BookingsScreen> {
       MaterialPageRoute(
         builder: (_) => StolBoshadiScreen(
           entry: entry,
-          venueName: 'Muassasa',
+          venueName: AppStrings.genericVenueName,
           repository: _waitlistRepository,
         ),
       ),
-    ).then((_) => _load());
+    ).then((_) => _loadActive());
   }
 
   Future<void> _leaveWaitlist(WaitlistEntity entry) async {
     final result = await _waitlistRepository.leave(entry.id);
     if (!mounted) return;
-    if (result.isSuccess) _load();
+    if (result.isSuccess) _loadActive();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LanguageCubit, LanguageState>(
       builder: (context, langState) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          onRefresh: _load,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        return Scaffold(
+          backgroundColor: const Color(0xFFF9FAFB),
+          body: SafeArea(
+            bottom: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  AppStrings.myBookings,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 22.sp, fontWeight: FontWeight.w800, color: const Color(0xFF181A20)),
-                ),
-                Gap(16.h),
-
-                // Segmented Tab Switcher (Faol / O'tgan)
-                Container(
-                  height: 44.h,
-                  padding: EdgeInsets.all(4.w),
-                  decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(14.r)),
-                  child: Row(
-                    children: [
-                      Expanded(child: _tabButton(AppStrings.activeTab, 0)),
-                      Expanded(child: _tabButton(AppStrings.historyTab, 1)),
-                    ],
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
+                  child: Text(
+                    AppStrings.myBookings,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 22.sp, fontWeight: FontWeight.w800, color: const Color(0xFF181A20)),
                   ),
                 ),
                 Gap(16.h),
 
-                if (_isLoading)
-                  const ListRowSkeletonGroup(count: 4)
-                else ...[
-                  ..._waitlist.map((entry) => Padding(padding: EdgeInsets.only(bottom: 12.h), child: _buildWaitlistCard(entry))),
-                  if (_bookings.isEmpty && _waitlist.isEmpty)
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40.h),
-                      child: Center(
-                        child: Text(
-                          AppStrings.noBookingsFound,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14.sp, color: const Color(0xFF6B7280)),
-                        ),
-                      ),
-                    )
-                  else
-                    ..._buildBookingGroups(),
-                ],
+                // Segmented Tab Switcher (Faol / O'tgan) — bosish ham, tanani
+                // (body) chapga/o'ngga surish (swipe) ham bir xil silliq
+                // suriluvchi pill bilan boshqariladi: pill TabController'ning
+                // uzluksiz animatsiya qiymatiga (`animation!.value`) bog'langan,
+                // shuning uchun barmoq bilan yarim yo'lgacha surilganda ham
+                // pill xuddi shu darajada suriladi — bosish va swipe bir xil
+                // "og'irlik"da his qilinadi. Butun ekranni emas, faqat shu
+                // kichik widgetni qayta chizadi (`setState` yo'q).
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: SizedBox(
+                    height: 44.h,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final tabWidth = (constraints.maxWidth - 8.w) / 2;
+                        return AnimatedBuilder(
+                          animation: _tabController.animation!,
+                          builder: (context, _) {
+                            final animValue = _tabController.animation!.value.clamp(0.0, 1.0);
+                            return Container(
+                              padding: EdgeInsets.all(4.w),
+                              decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(14.r)),
+                              child: Stack(
+                                children: [
+                                  Positioned(
+                                    left: animValue * tabWidth,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: tabWidth,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10.r),
+                                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(child: _tabButton(AppStrings.activeTab, 0)),
+                                      Expanded(child: _tabButton(AppStrings.historyTab, 1)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Gap(16.h),
 
-                Gap(90.h),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildActiveTabBody(),
+                      _buildHistoryTabBody(),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
+        );
       },
     );
   }
 
-  Widget _tabButton(String label, int index) {
-    final isSelected = _selectedTabIndex == index;
-    return GestureDetector(
-      onTap: () {
-        if (_selectedTabIndex == index) return;
-        HapticFeedback.lightImpact();
-        setState(() => _selectedTabIndex = index);
-        _load();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10.r),
-          boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))] : null,
+  Widget _buildActiveTabBody() {
+    return RefreshIndicator.adaptive(
+      onRefresh: _loadActive,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isActiveLoading)
+              const ListRowSkeletonGroup(count: 4)
+            else ...[
+              ..._waitlist.map((entry) => Padding(padding: EdgeInsets.only(bottom: 12.h), child: _buildWaitlistCard(entry))),
+              if (_activeBookings.isEmpty && _waitlist.isEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.h),
+                  child: AppStateView.empty(icon: Icons.event_busy_outlined, title: AppStrings.noBookingsFound),
+                )
+              else
+                ..._buildBookingGroups(_activeBookings, isActiveTab: true),
+            ],
+            Gap(CustomBottomNavBar.reservedBottomSpace(context)),
+          ],
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13.5.sp,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? const Color(0xFF181A20) : const Color(0xFF6B7280),
-            ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryTabBody() {
+    return RefreshIndicator.adaptive(
+      onRefresh: _loadHistory,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isHistoryLoading)
+              const ListRowSkeletonGroup(count: 4)
+            else if (_historyBookings.isEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.h),
+                child: AppStateView.empty(icon: Icons.event_busy_outlined, title: AppStrings.noBookingsFound),
+              )
+            else
+              ..._buildBookingGroups(_historyBookings, isActiveTab: false),
+            Gap(CustomBottomNavBar.reservedBottomSpace(context)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Diqqat: bu widget endi o'z fonini chizmaydi — suriluvchi pill uning
+  // orqasida, alohida `Positioned` sifatida chiziladi (yuqoridagi
+  // `AnimatedBuilder`). Bu yerda faqat matn va bosishni ushlash bor.
+  Widget _tabButton(String label, int index) {
+    final isSelected = _tabController.index == index;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (_tabController.index == index) return;
+        HapticFeedback.lightImpact();
+        _tabController.animateTo(index);
+      },
+      child: Center(
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13.5.sp,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? const Color(0xFF181A20) : const Color(0xFF6B7280),
           ),
         ),
       ),
@@ -235,7 +349,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     Container(width: 8.r, height: 8.r, decoration: const BoxDecoration(color: Color(0xFFDC3009), shape: BoxShape.circle)),
                     Gap(6.w),
                     Text(
-                      isCalled ? 'STOL BO\'SHADI' : 'NAVBATDASIZ',
+                      isCalled ? AppStrings.waitlistReadyBadge : AppStrings.waitlistWaitingBadge,
                       style: GoogleFonts.plusJakartaSans(fontSize: 11.5.sp, fontWeight: FontWeight.w700, color: const Color(0xFFDC3009), letterSpacing: 0.5),
                     ),
                   ],
@@ -243,7 +357,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 if (!isCalled)
                   GestureDetector(
                     onTap: () => _leaveWaitlist(entry),
-                    child: Text('Chiqish', style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, fontWeight: FontWeight.w600, color: const Color(0xFF181A20))),
+                    child: Text(AppStrings.leaveQueueAction, style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, fontWeight: FontWeight.w600, color: const Color(0xFF181A20))),
                   ),
               ],
             ),
@@ -252,21 +366,21 @@ class _BookingsScreenState extends State<BookingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Sizdan oldin', style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: const Color(0xFF6B7280))),
-                  Text('${entry.position > 0 ? entry.position - 1 : 0} kishi', style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20))),
+                  Text(AppStrings.peopleAheadLabel, style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: const Color(0xFF6B7280))),
+                  Text('${entry.position > 0 ? entry.position - 1 : 0} ${AppStrings.persons}', style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20))),
                 ],
               ),
               Gap(6.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Taxminiy kutish', style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: const Color(0xFF6B7280))),
-                  Text('~${entry.estimatedWaitMinutes} daqiqa', style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20))),
+                  Text(AppStrings.estimatedWaitLabel, style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: const Color(0xFF6B7280))),
+                  Text('~${entry.estimatedWaitMinutes} ${AppStrings.waitMinutesSuffix}', style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20))),
                 ],
               ),
             ] else
               Text(
-                'Tasdiqlash uchun taymer ishlamoqda — kartaga bosing',
+                AppStrings.confirmTimerRunningNote,
                 style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: const Color(0xFF6B7280)),
               ),
           ],
@@ -275,12 +389,12 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
   }
 
-  List<Widget> _buildBookingGroups() {
-    if (_bookings.isEmpty) return [];
+  List<Widget> _buildBookingGroups(List<BookingEntity> bookings, {required bool isActiveTab}) {
+    if (bookings.isEmpty) return [];
     final now = DateTime.now();
     final today = <BookingEntity>[];
     final upcoming = <BookingEntity>[];
-    for (final b in _bookings) {
+    for (final b in bookings) {
       final local = b.startsAt.toLocal();
       if (local.year == now.year && local.month == now.month && local.day == now.day) {
         today.add(b);
@@ -291,13 +405,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
     final widgets = <Widget>[];
     if (today.isNotEmpty) {
-      widgets.add(_sectionLabel(_selectedTabIndex == 0 ? 'BUGUN' : 'YAQINDA'));
+      widgets.add(_sectionLabel(isActiveTab ? AppStrings.todaySectionLabel : AppStrings.upcomingSectionLabel));
       widgets.add(Gap(8.h));
       widgets.addAll(_intersperse(today.map(_buildBookingItem).toList(), Gap(10.h)));
       if (upcoming.isNotEmpty) widgets.add(Gap(18.h));
     }
     if (upcoming.isNotEmpty) {
-      widgets.add(_sectionLabel(_selectedTabIndex == 0 ? 'KEYINGI KUNLAR' : 'AVVALGI BRONLAR'));
+      widgets.add(_sectionLabel(isActiveTab ? AppStrings.nextDaysSectionLabel : AppStrings.pastBookingsSectionLabel));
       widgets.add(Gap(8.h));
       widgets.addAll(_intersperse(upcoming.map(_buildBookingItem).toList(), Gap(10.h)));
     }
@@ -364,7 +478,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   ),
                   Gap(4.h),
                   Text(
-                    '${formatDateShort(local)} · ${formatTime(local)} · ${booking.guests} kishi',
+                    '${formatDateShort(local)} · ${formatTime(local)} · ${booking.guests} ${AppStrings.persons}',
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.sp, color: const Color(0xFF6B7280)),
                   ),
                 ],
@@ -379,17 +493,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
   (Color, Color, String) _statusBadge(BookingStatus status) {
     switch (status) {
       case BookingStatus.kutilmoqda:
-        return (const Color(0xFFE6F9F0), const Color(0xFF12B76A), 'TASDIQLANDI');
+        return (const Color(0xFFE6F9F0), const Color(0xFF12B76A), AppStrings.bookingBadgeConfirmed);
       case BookingStatus.kechikmoqda:
-        return (const Color(0xFFFEF3EB), const Color(0xFFF79009), 'KUTILMOQDA');
+        return (const Color(0xFFFEF3EB), const Color(0xFFF79009), AppStrings.bookingBadgePending);
       case BookingStatus.keldi:
-        return (const Color(0xFFE6F9F0), const Color(0xFF12B76A), 'KELDI');
+        return (const Color(0xFFE6F9F0), const Color(0xFF12B76A), AppStrings.bookingBadgeArrived);
       case BookingStatus.kelmadi:
-        return (const Color(0xFFFEE4E2), const Color(0xFFD92D20), 'KELMADI');
+        return (const Color(0xFFFEE4E2), const Color(0xFFD92D20), AppStrings.bookingBadgeNoShow);
       case BookingStatus.bekor:
-        return (const Color(0xFFFEE4E2), const Color(0xFFD92D20), 'BEKOR QILINGAN');
+        return (const Color(0xFFFEE4E2), const Color(0xFFD92D20), AppStrings.bookingBadgeCancelled);
       case BookingStatus.yakunlandi:
-        return (const Color(0xFFF3F4F6), const Color(0xFF6B7280), 'YAKUNLANDI');
+        return (const Color(0xFFF3F4F6), const Color(0xFF6B7280), AppStrings.bookingBadgeCompleted);
       case BookingStatus.unknown:
         return (const Color(0xFFF3F4F6), const Color(0xFF6B7280), '—');
     }

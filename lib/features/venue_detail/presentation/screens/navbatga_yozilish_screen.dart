@@ -17,6 +17,7 @@ import '../../../waitlist/data/repositories/waitlist_repository_impl.dart';
 import '../../../waitlist/domain/repositories/waitlist_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 /// Figma: `Navbatga yozilish` (`210:1407`) — mijoz/05-navbat.md.
 class NavbatgaYozilishScreen extends StatefulWidget {
@@ -89,12 +90,7 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
 
     switch (result) {
       case Success():
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.waitlistSuccess),
-            backgroundColor: const Color(0xFF12B76A),
-          ),
-        );
+        AppToast.success(context, AppStrings.waitlistSuccess);
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MainNavigationScreen(initialIndex: 2)),
@@ -106,9 +102,7 @@ class _NavbatgaYozilishScreenState extends State<NavbatgaYozilishScreen> {
           'party_too_large' => AppStrings.partyTooLarge,
           _ => exception.message,
         };
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: AppColors.error),
-        );
+        AppToast.error(context, message);
     }
   }
 

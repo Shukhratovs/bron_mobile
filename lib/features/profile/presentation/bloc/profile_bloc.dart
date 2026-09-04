@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/network/app_session.dart';
 import '../../domain/entities/card_entity.dart';
@@ -75,6 +76,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     await profileRepository.logout();
+    await AppSession.pushService.unregisterToken();
     await AppSession.authLocalStorage.clear();
     emit(const ProfileState(
       status: ProfileStatus.loggedOut,

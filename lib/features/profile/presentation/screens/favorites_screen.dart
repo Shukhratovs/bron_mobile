@@ -133,7 +133,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             )
           : _venues.isEmpty
               ? _buildEmptyState()
-              : RefreshIndicator(
+              : RefreshIndicator.adaptive(
                   onRefresh: _loadFavorites,
                   color: AppColors.primary,
                   child: ListView.separated(
@@ -145,7 +145,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         return Padding(
                           padding: EdgeInsets.only(left: 4.w, bottom: 0),
                           child: Text(
-                            '${_venues.length} ta joy saqlangan',
+                            AppStrings.savedPlacesCount(_venues.length),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w400,
@@ -190,7 +190,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           Gap(8.h),
           Text(
-            'Yoqtirgan joylarni ♥ bosib saqlang',
+            AppStrings.favoritesEmptyHint,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14.sp,
               color: const Color(0xFF5C5C5C),

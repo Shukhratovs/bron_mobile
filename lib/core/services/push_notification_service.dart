@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../constants/api_endpoints.dart';
-import '../network/app_session.dart';
+import '../network/api_client.dart';
 
 /// Top-level background handler — must be a top-level function.
 @pragma('vm:entry-point')
@@ -12,12 +11,28 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you need custom processing, do it here.
 }
 
+/// Qurilmani push uchun ro'yxatdan o'tkazadi (00-boshlash.md §2).
+/// Mijoz va xostes ilovalari o'z `ApiClient` va `/devices` yo'lini
+/// berib alohida nusxa yaratadi — ikkalasi ham FCM/APNs tokenini
+/// kirishdan keyin yuboradi, chiqishda o'chiradi.
 class PushNotificationService {
-  PushNotificationService._();
-  static final PushNotificationService instance = PushNotificationService._();
+  final ApiClient apiClient;
+  final String devicesEndpoint;
+  final bool Function() isLoggedIn;
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  PushNotificationService({
+    required this.apiClient,
+    required this.devicesEndpoint,
+    required this.isLoggedIn,
+  });
+
+  // `late` — bu maydonlar birinchi ishlatilganda baholanadi, konstruktorda
+  // emas. `PushNotificationService` `AppSession.init()`/`StaffSession.init()`
+  // ichida, ya'ni `Firebase.initializeApp()`dan OLDIN yaratiladi; agar bu
+  // maydonlar oddiy `final` bo'lsa, `FirebaseMessaging.instance`ga o'sha
+  // zahoti murojaat qilinib "No Firebase App '[DEFAULT]'" xatosini beradi.
+  late final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  late final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   static const _androidChannel = AndroidNotificationChannel(
     'bron_notifications',
@@ -73,7 +88,7 @@ class PushNotificationService {
       _onMessageOpenedApp(initialMessage);
     }
 
-    // 8. Register FCM token with backend
+    // 8. Register FCM token with backend (har ishga tushganda — 00-boshlash.md §2 qoida 1)
     await _registerToken();
 
     // 9. Listen for token refresh
@@ -85,15 +100,21 @@ class PushNotificationService {
     try {
       final token = await _messaging.getToken();
       if (token == null || token.isEmpty) return;
-      if (!AppSession.authLocalStorage.isLoggedIn) return;
+      if (!isLoggedIn()) return;
 
       final platform = Platform.isIOS ? 'ios' : 'android';
-      await AppSession.apiClient.post(
-        ApiEndpoints.devices,
+      // suppressAuthClear: bu fon so'rovi — agar token muddati aynan shu
+      // paytda tugagan bo'lsa ham, foydalanuvchi hali hech narsa qilmagan,
+      // shuning uchun butun sessiya jimgina o'chirilmasligi kerak (aks holda
+      // ilova ochilishi bilanoq, foydalanuvchi bilmagan holda chiqib
+      // ketadi).
+      await apiClient.post(
+        devicesEndpoint,
         body: {
           'token': token,
           'platform': platform,
         },
+        suppressAuthClear: true,
       );
     } catch (_) {
       // Token registration failed — will retry on next refresh
@@ -103,6 +124,22 @@ class PushNotificationService {
   /// Re-register token after user logs in.
   Future<void> registerTokenAfterLogin() async {
     await _registerToken();
+  }
+
+  /// Chiqishda qurilmani o'chirish — token ilova tomonida saqlanadi, server
+  /// tomonida emas, shuning uchun `logout` buni o'zi qilmaydi
+  /// (00-boshlash.md §2 qoida 3). Token doim mavjud so'rov bilan ishlatiladi,
+  /// shuning uchun bu chaqiruv `authLocalStorage` tozalanishidan OLDIN
+  /// bo'lishi kerak (DELETE ham Bearer talab qiladi).
+  Future<void> unregisterToken() async {
+    try {
+      final token = await _messaging.getToken();
+      if (token == null || token.isEmpty) return;
+      await apiClient.delete('$devicesEndpoint?token=$token', suppressAuthClear: true);
+    } catch (_) {
+      // Yo'q tokenni o'chirish ham 204 qaytaradi — xato bo'lsa ham
+      // chiqish oqimini to'xtatmaymiz.
+    }
   }
 
   /// Show local notification when app is in foreground.

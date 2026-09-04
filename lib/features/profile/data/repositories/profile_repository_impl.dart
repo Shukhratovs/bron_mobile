@@ -1,4 +1,6 @@
 import '../../../../core/network/api_result.dart';
+import '../../../../core/network/app_session.dart';
+import '../../../../core/network/auth_local_storage.dart';
 import '../../../../core/network/network_exceptions.dart';
 import '../../domain/entities/bonus_history_entity.dart';
 import '../../domain/entities/favorite_place_entity.dart';
@@ -17,7 +19,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<ApiResult<UserProfileEntity>> getUserProfile() async {
     try {
       final user = await remoteDataSource.getUserProfile();
-      return ApiResult.success(user);
+      // Backend `avatar`/`photo` maydonini qaytarmaydi (tekshirilgan —
+      // `UserOut` sxemasida yo'q), shuning uchun server javobi doim
+      // standart asset'ga tushadi. Qurilmada mahalliy tanlangan rasm
+      // bo'lsa, shu yerda ustiga qo'yiladi.
+      final storage = AppSession.authLocalStorage;
+      final localAvatarPath = storage is AuthLocalStorageImpl ? storage.localAvatarPath : null;
+      final resolved = localAvatarPath != null && localAvatarPath.isNotEmpty
+          ? user.copyWith(avatarUrl: localAvatarPath)
+          : user;
+      return ApiResult.success(resolved);
     } on NetworkException catch (e) {
       return ApiResult.failure(e);
     } catch (e) {

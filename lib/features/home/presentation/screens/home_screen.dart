@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../../../core/network/app_session.dart';
+import '../../../../core/widgets/app_state_view.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../profile/data/datasources/profile_remote_data_source.dart';
 import '../../../profile/data/repositories/profile_repository_impl.dart';
@@ -22,7 +23,7 @@ import '../../../venue_detail/presentation/screens/vaqt_tanlash_screen.dart';
 import '../../../venue_detail/presentation/screens/venue_detail_screen.dart';
 import '../../data/models/banner_model.dart';
 import '../../data/models/category_model.dart';
-import '../../domain/venue_filters.dart';
+import '../../../main/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/home_available_today_section.dart';
 import '../widgets/home_banner_widget.dart';
@@ -109,9 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openFilters() async {
     final currentFilters = _homeBloc.state.filters;
-    final result = await Navigator.push<VenueFilters>(
+    final result = await FiltrlarScreen.show(
       context,
-      MaterialPageRoute(builder: (context) => FiltrlarScreen(initial: currentFilters)),
+      initial: currentFilters,
+      selectedKind: _homeBloc.state.selectedKind ?? currentFilters.kind,
     );
     if (result != null) {
       _homeBloc.add(HomeFiltersChanged(result));
@@ -182,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: BlocBuilder<HomeBloc, HomeState>(
                     bloc: _homeBloc,
                     builder: (context, state) {
-                      return RefreshIndicator(
+                      return RefreshIndicator.adaptive(
                         onRefresh: () async {
                           _homeBloc.add(const HomeLoadRequested());
                           await _homeBloc.stream.firstWhere(
@@ -289,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const VenueCardSkeleton(),
           Gap(14.h),
           const VenueCardSkeleton(),
-          Gap(120.h),
+          Gap(CustomBottomNavBar.reservedBottomSpace(context)),
         ],
       ),
     );
@@ -389,28 +391,17 @@ class _HomeScreenState extends State<HomeScreen> {
         if (state.errorMessage != null)
           Padding(
             padding: EdgeInsets.symmetric(vertical: 24.h),
-            child: Center(
-              child: Text(
-                state.errorMessage!,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.sp,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
+            child: state.isOffline
+                ? AppStateView.noInternet(onRetry: () => _homeBloc.add(const HomeLoadRequested()))
+                : AppStateView.error(
+                    description: state.errorMessage,
+                    onRetry: () => _homeBloc.add(const HomeLoadRequested()),
+                  ),
           )
         else if (state.venues.isEmpty)
           Padding(
             padding: EdgeInsets.symmetric(vertical: 24.h),
-            child: Center(
-              child: Text(
-                AppStrings.noData,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.sp,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
+            child: AppStateView.empty(icon: Icons.storefront_outlined),
           )
         else
           LayoutBuilder(
@@ -460,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
 
-        Gap(120.h),
+        Gap(CustomBottomNavBar.reservedBottomSpace(context)/3),
       ],
     );
   }

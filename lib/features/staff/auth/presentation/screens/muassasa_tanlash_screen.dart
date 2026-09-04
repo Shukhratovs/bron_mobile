@@ -18,7 +18,7 @@ class MuassasaTanlashScreen extends StatelessWidget {
   const MuassasaTanlashScreen({super.key, required this.venues, required this.localStorage});
 
   void _select(BuildContext context, StaffVenueEntity venue) async {
-    await localStorage.setSelectedVenueId(venue.id);
+    await localStorage.setSelectedVenueId(venue.id, venueName: venue.name);
     if (!context.mounted) return;
     Navigator.pushReplacement(
       context,

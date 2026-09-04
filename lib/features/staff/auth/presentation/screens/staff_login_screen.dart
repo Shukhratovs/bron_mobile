@@ -128,11 +128,15 @@ class _StaffLoginScreenState extends State<StaffLoginScreen> {
       expiresIn: token.expiresIn,
     );
     await storage.saveStaffMeta(role: token.role, organizationId: token.organizationId, venueId: token.venueId);
+    await StaffSession.pushService.registerTokenAfterLogin();
 
     final venuesResult = await _repository.getVenues();
     if (!mounted) return;
 
     final venues = venuesResult.dataOrNull ?? const <StaffVenueEntity>[];
+    if (venues.length == 1) {
+      await storage.setSelectedVenueId(venues.first.id, venueName: venues.first.name);
+    }
     if (venues.length > 1) {
       // `pushReplacement` (`pushAndRemoveUntil` emas) — bu ekran Xostes
       // ilovasining ildizi bo'lganda ikkalasi bir xil natija beradi, lekin
@@ -143,7 +147,6 @@ class _StaffLoginScreenState extends State<StaffLoginScreen> {
         MaterialPageRoute(builder: (context) => MuassasaTanlashScreen(venues: venues, localStorage: storage)),
       );
     } else {
-      if (venues.length == 1) await storage.setSelectedVenueId(venues.first.id);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const StaffMainScreen()),

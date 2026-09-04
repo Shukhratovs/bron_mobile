@@ -154,7 +154,15 @@ class _GlassLiquidBottomNavBarState extends State<GlassLiquidBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     final effectiveBorderRadius = widget.borderRadius ?? 40.r;
-    final effectiveMargin = widget.margin ?? EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h);
+    // Ba'zi Android qurilmalarida tizim navigatsiya paneli (3 tugmali yoki
+    // gesture bar) qattiq `24.h`dan balandroq bo'ladi va bu suzuvchi panelni
+    // o'ziga bosib qo'yadi — shuning uchun haqiqiy tizim inseti qo'shiladi,
+    // panel har doim navigatsiyadan butunlay yuqorida turadi. Faqat
+    // `widget.margin` berilmagan holatda ishlaydi — ataylab berilgan margin
+    // ustidan yozilmaydi.
+    final systemNavInset = MediaQuery.of(context).padding.bottom;
+    final effectiveMargin =
+        widget.margin ?? EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h + systemNavInset);
 
     return Padding(
       padding: effectiveMargin,

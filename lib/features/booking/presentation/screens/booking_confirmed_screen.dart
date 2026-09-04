@@ -16,6 +16,7 @@ import '../../../bookings/data/repositories/booking_repository_impl.dart';
 import '../../../bookings/domain/entities/booking_entity.dart';
 import '../../../bookings/domain/repositories/booking_repository.dart';
 import '../../../main/presentation/screens/main_navigation_screen.dart';
+import '../../../../core/widgets/app_toast.dart';
 
 class BookingConfirmedScreen extends StatefulWidget {
   final BookingEntity booking;
@@ -220,11 +221,7 @@ class _BookingConfirmedScreenState extends State<BookingConfirmedScreen> {
                     icon: Icons.calendar_today_rounded,
                     label: 'Kalendarga',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Taqvimga muvaffaqiyatli saqlandi'),
-                        ),
-                      );
+                      AppToast.success(context, 'Taqvimga muvaffaqiyatli saqlandi');
                     },
                   ),
                   Gap(10.w),
@@ -241,9 +238,7 @@ class _BookingConfirmedScreenState extends State<BookingConfirmedScreen> {
                       Clipboard.setData(ClipboardData(
                         text: '${widget.venueName} • ${booking.code} • ${formatDateLong(booking.startsAt.toLocal())} ${formatTime(booking.startsAt.toLocal())}',
                       ));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Havola nusxalandi')),
-                      );
+                      AppToast.info(context, 'Havola nusxalandi');
                     },
                   ),
                 ],

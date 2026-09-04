@@ -96,7 +96,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           ? Padding(padding: EdgeInsets.all(16.w), child: const ListRowSkeletonGroup(count: 5, leadingIsCircle: true))
           : _errorMessage != null
               ? _buildError()
-              : RefreshIndicator(
+              : RefreshIndicator.adaptive(
                   onRefresh: _load,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
