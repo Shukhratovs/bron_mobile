@@ -59,10 +59,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCHKsyqZNQzO1DhGkB0YujKd5M9WMPn4fI',
-    appId: '1:549457015694:ios:45647042e81b7d2aefeadf',
+    appId: '1:549457015694:ios:e2f0374a2144ccddefeadf',
     messagingSenderId: '549457015694',
     projectId: 'e-bron',
     storageBucket: 'e-bron.firebasestorage.app',
-    iosBundleId: 'bron.mobile.uz.bronMobile',
+    iosBundleId: 'bron.mobile.uz',
   );
 }
