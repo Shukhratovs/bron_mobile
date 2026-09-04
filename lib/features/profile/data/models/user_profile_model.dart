@@ -41,8 +41,8 @@ class UserProfileModel extends UserProfileEntity {
 
     return UserProfileModel(
       id: json['id'] ?? 'user_1',
-      firstName: fName.isNotEmpty ? fName : 'Aziz',
-      lastName: lName.isNotEmpty ? lName : 'Karimov',
+      firstName: fName,
+      lastName: lName,
       phoneNumber: phone.isNotEmpty ? phone : '+998 90 123-45-67',
       avatarUrl: json['avatar_url']?.toString() ?? json['photo_url']?.toString() ?? AppAssets.me,
       birthDate: json['birth_date']?.toString(),
