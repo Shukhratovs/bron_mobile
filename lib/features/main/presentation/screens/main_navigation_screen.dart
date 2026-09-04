@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/language/language_cubit.dart';
@@ -6,6 +7,7 @@ import '../../../home/presentation/screens/home_screen.dart';
 import '../../../map/presentation/screens/map_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+import '../widgets/ios_liquid_glass_nav_bar.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -54,10 +56,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             index: _currentIndex,
             children: _screens,
           ),
-          bottomNavigationBar: CustomBottomNavBar(
-            currentIndex: _currentIndex,
-            onTap: _onTabSelected,
-          ),
+          bottomNavigationBar: defaultTargetPlatform == TargetPlatform.iOS
+              ? IosLiquidGlassNavBar(
+                  currentIndex: _currentIndex,
+                  onTap: _onTabSelected,
+                )
+              : CustomBottomNavBar(
+                  currentIndex: _currentIndex,
+                  onTap: _onTabSelected,
+                ),
         );
       },
     );

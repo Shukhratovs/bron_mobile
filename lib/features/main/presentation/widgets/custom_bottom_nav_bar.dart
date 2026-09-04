@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_strings.dart';
+import 'ios_liquid_glass_nav_bar.dart';
 
 class BottomNavItem {
   final String svgPath;
@@ -64,7 +66,9 @@ class CustomBottomNavBar extends StatefulWidget {
   /// (120.h/100.h) raqam yozgan edi — ba'zilarida panel tagida ortiqcha
   /// katta bo'sh joy qolar edi.
   static double reservedBottomSpace(BuildContext context) =>
-      96.h + MediaQuery.of(context).padding.bottom;
+      defaultTargetPlatform == TargetPlatform.iOS
+          ? IosLiquidGlassNavBar.reservedBottomSpace(context)
+          : 96.h + MediaQuery.of(context).padding.bottom;
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();

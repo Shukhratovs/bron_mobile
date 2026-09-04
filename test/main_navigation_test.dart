@@ -78,4 +78,31 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump();
   });
+
+  testWidgets('MainNavigationScreen renders IosLiquidGlassNavBar on iOS platform',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      Theme(
+        data: ThemeData(platform: TargetPlatform.iOS),
+        child: buildTestableWidget(const MainNavigationScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.navHome), findsOneWidget);
+    expect(find.text(AppStrings.navMap), findsOneWidget);
+    expect(find.text(AppStrings.navBookings), findsOneWidget);
+    expect(find.text(AppStrings.navProfile), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
 }
+
