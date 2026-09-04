@@ -46,6 +46,7 @@ exports.broadcastNotification = onRequest(
         topic: "all_devices",
         notification: {title: title.trim(), body: body.trim()},
       });
+      console.log("broadcastNotification yuborildi:", messageId);
       res.status(200).json({success: true, messageId});
     } catch (err) {
       console.error("broadcastNotification xato:", err);
