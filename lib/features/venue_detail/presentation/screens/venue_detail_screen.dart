@@ -192,12 +192,31 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Scrollable Content
-          SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: 100.h),
-            child: Column(
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 12.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(
+            top: BorderSide(color: Color(0xFFE5E7EB)),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: AppButton.primary(
+            text: AppStrings.bookNow,
+            onPressed: _openBookingFlow,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Hero Image Header with Top Buttons
@@ -242,11 +261,11 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                             ),
                             Row(
                               children: [
-                                _buildSvgCircleButton(
-                                  svgPath: AppAssets.iconShareForwardLine,
-                                  onTap: _share,
-                                ),
-                                Gap(10.w),
+                                // _buildSvgCircleButton(
+                                //   svgPath: AppAssets.iconShareForwardLine,
+                                //   onTap: _share,
+                                // ),
+                                // Gap(10.w),
                                 _buildSvgCircleButton(
                                   svgPath: _isFavorite
                                       ? AppAssets.iconHeartFill
@@ -529,40 +548,6 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                 ),
               ],
             ),
-          ),
-
-          // Bottom Sticky Button Bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  top: BorderSide(
-                    color: const Color(0xFFE5E7EB),
-                  ),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: AppButton.primary(
-                  text: AppStrings.bookNow,
-                  onPressed: _openBookingFlow,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
