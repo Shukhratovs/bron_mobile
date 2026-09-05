@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../../bookings/presentation/screens/bookings_screen.dart';
@@ -60,9 +61,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             extendBody: true,
             backgroundColor: Colors.white,
             body: body,
-            bottomBar: buildIosGlassTabBar(
-              selectedIndex: _currentIndex,
-              onTabSelected: _onTabSelected,
+            bottomBar: Padding(
+              padding:  EdgeInsets.only(bottom: 20.h),
+              child: buildIosGlassTabBar(
+                selectedIndex: _currentIndex,
+                onTabSelected: _onTabSelected,
+              ),
             ),
           );
         }
