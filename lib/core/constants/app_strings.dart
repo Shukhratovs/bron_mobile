@@ -238,6 +238,7 @@ class AppStrings {
   static String get categoryGeymKlub => tr('category_geym_klub');
   static String get categorySartaroshxona => tr('category_sartaroshxona');
   static String get categoryGozallikSaloni => tr('category_gozallik_saloni');
+  static String get comingSoonBadge => tr('coming_soon_badge');
 
   // Venue Detail
   static String get venueNotFound => tr('venue_not_found');
@@ -261,6 +262,18 @@ class AppStrings {
   static String get noFreeSlots => tr('no_free_slots');
   static String get maxTableSeats => tr('max_table_seats');
   static String get depositBlocked => tr('deposit_blocked');
+
+  // Booking confirmation
+  static String get confirmBookingTitle => tr('confirm_booking_title');
+  static String get blockAndBook => tr('block_and_book');
+  static String get noCardLinked => tr('no_card_linked');
+  static String get selectCardTitle => tr('select_card_title');
+
+  // Change booking time
+  static String get changeTimeTitle => tr('change_time_title');
+  static String get currentBookingLabel => tr('current_booking_label');
+  static String get selectNewTime => tr('select_new_time');
+  static String get changeToTimeButton => tr('change_to_time_button');
 
   // Menu
   static String get menuAll => tr('menu_all');
@@ -444,8 +457,8 @@ class AppStrings {
   static String get faqFooterNote => tr('faq_footer_note');
   static String get telegramSupportSubtitle => tr('telegram_support_subtitle');
   static String get callUsSubtitle => tr('call_us_subtitle');
-  static String get telegramOpening => tr('telegram_opening');
-  static String get callOpening => tr('call_opening');
+  static String get telegramOpenError => tr('telegram_open_error');
+  static String get callOpenError => tr('call_open_error');
 
   static List<(String question, String answer)> get faqItems => List.generate(
         6,
@@ -775,8 +788,8 @@ class AppStrings {
       'faq_footer_note': 'Javob topa olmadingizmi — Telegramda yozing, menejerimiz yordam beradi.',
       'telegram_support_subtitle': '@bron_support · odatda 5 daqiqada javob',
       'call_us_subtitle': '+998 71 200-00-00 · 09:00–21:00',
-      'telegram_opening': '@bron_support Telegram qo\'llab-quvvatlash ochilmoqda...',
-      'call_opening': '+998 71 200-00-00 raqamiga ulanmoqda...',
+      'telegram_open_error': 'Telegram ilovasini ochib bo\'lmadi',
+      'call_open_error': 'Qo\'ng\'iroq qilib bo\'lmadi',
       'faq_q1': 'Depozit nima va u qachon qaytariladi?',
       'faq_a1':
           'Depozit — bu gavjum va pik soatlarda stolni siz uchun kafolatli saqlab turish garovidir. Restoranga o\'z vaqtida tashrif buyurganingizda, depozit to\'liq hisobdan chiqariladi yoki umumiy chekingizdan chegirib beriladi.',
@@ -815,6 +828,7 @@ class AppStrings {
       'category_geym_klub': 'Geym klub',
       'category_sartaroshxona': 'Sartaroshxona',
       'category_gozallik_saloni': 'Go\'zallik saloni',
+      'coming_soon_badge': 'Tez orada',
 
       // Venue Detail
       'venue_not_found': 'Muassasa topilmadi',
@@ -838,6 +852,18 @@ class AppStrings {
       'no_free_slots': 'Bo\'sh vaqt yo\'q',
       'max_table_seats': 'Eng katta stol',
       'deposit_blocked': 'Bu vaqtlarda depozit kartada bloklanadi',
+
+      // Booking confirmation
+      'confirm_booking_title': 'Bronni tasdiqlash',
+      'block_and_book': 'Bloklash va bron qilish',
+      'no_card_linked': 'Karta biriktirilmagan',
+      'select_card_title': 'Kartani tanlang',
+
+      // Change booking time
+      'change_time_title': 'Vaqtni o\'zgartirish',
+      'current_booking_label': 'Hozirgi bron',
+      'select_new_time': 'Yangi vaqt tanlang',
+      'change_to_time_button': 'ga o\'zgartirish',
 
       // Menu
       'menu_all': 'Hammasi',
@@ -1185,8 +1211,8 @@ class AppStrings {
       'faq_footer_note': 'Не нашли ответ — напишите в Telegram, наш менеджер поможет.',
       'telegram_support_subtitle': '@bron_support · обычно отвечаем за 5 минут',
       'call_us_subtitle': '+998 71 200-00-00 · 09:00–21:00',
-      'telegram_opening': 'Открывается поддержка @bron_support в Telegram...',
-      'call_opening': 'Звонок на номер +998 71 200-00-00...',
+      'telegram_open_error': 'Не удалось открыть Telegram',
+      'call_open_error': 'Не удалось совершить звонок',
       'faq_q1': 'Что такое депозит и когда он возвращается?',
       'faq_a1':
           'Депозит — это гарантия того, что столик сохранится за вами в загруженные и пиковые часы. При своевременном визите депозит полностью списывается или вычитается из общего чека.',
@@ -1225,6 +1251,7 @@ class AppStrings {
       'category_geym_klub': 'Гейм клуб',
       'category_sartaroshxona': 'Барбершоп',
       'category_gozallik_saloni': 'Салон красоты',
+      'coming_soon_badge': 'Скоро',
 
       // Venue Detail
       'venue_not_found': 'Заведение не найдено',
@@ -1248,6 +1275,18 @@ class AppStrings {
       'no_free_slots': 'Нет свободного времени',
       'max_table_seats': 'Самый большой стол',
       'deposit_blocked': 'В это время депозит блокируется на карте',
+
+      // Booking confirmation
+      'confirm_booking_title': 'Подтверждение брони',
+      'block_and_book': 'Заблокировать и забронировать',
+      'no_card_linked': 'Карта не привязана',
+      'select_card_title': 'Выберите карту',
+
+      // Change booking time
+      'change_time_title': 'Изменить время',
+      'current_booking_label': 'Текущая бронь',
+      'select_new_time': 'Выберите новое время',
+      'change_to_time_button': 'изменить на',
 
       // Menu
       'menu_all': 'Все',
@@ -1595,8 +1634,8 @@ class AppStrings {
       'faq_footer_note': 'Can\'t find an answer — message us on Telegram, our manager will help.',
       'telegram_support_subtitle': '@bron_support · usually replies within 5 minutes',
       'call_us_subtitle': '+998 71 200-00-00 · 09:00–21:00',
-      'telegram_opening': 'Opening @bron_support on Telegram...',
-      'call_opening': 'Calling +998 71 200-00-00...',
+      'telegram_open_error': 'Couldn\'t open Telegram',
+      'call_open_error': 'Couldn\'t place the call',
       'faq_q1': 'What is a deposit and when is it refunded?',
       'faq_a1':
           'A deposit guarantees your table is held for you during busy, peak hours. If you arrive on time, the deposit is fully charged as part of your bill or deducted from your total check.',
@@ -1635,6 +1674,7 @@ class AppStrings {
       'category_geym_klub': 'Game club',
       'category_sartaroshxona': 'Barbershop',
       'category_gozallik_saloni': 'Beauty salon',
+      'coming_soon_badge': 'Coming soon',
 
       // Venue Detail
       'venue_not_found': 'Venue not found',
@@ -1658,6 +1698,18 @@ class AppStrings {
       'no_free_slots': 'No available slots',
       'max_table_seats': 'Largest table',
       'deposit_blocked': 'Deposit will be held on your card for this time',
+
+      // Booking confirmation
+      'confirm_booking_title': 'Confirm booking',
+      'block_and_book': 'Block deposit & book',
+      'no_card_linked': 'No card linked',
+      'select_card_title': 'Select card',
+
+      // Change booking time
+      'change_time_title': 'Change time',
+      'current_booking_label': 'Current booking',
+      'select_new_time': 'Select a new time',
+      'change_to_time_button': '— change',
 
       // Menu
       'menu_all': 'All',

@@ -61,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileBloc _profileBloc;
   late final AuthRepository _authRepository;
   late final ProfileRepository _profileRepository;
-  String _appVersion = '1.0.0';
+  String _appVersion = '';
 
   /// Faqat shu raqamga tegishli akkauntda "Barchaga xabar yuborish" tugmasi
   /// ko'rinadi. Solishtirish "+", bo'shliq va "-" larni olib tashlab
@@ -106,11 +106,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  // `pubspec.yaml`dagi `version: X.Y.Z+N` — build vaqtida platforma native
+  // metama'lumotiga (Android `versionName`/`versionCode`, iOS
+  // `CFBundleShortVersionString`/`CFBundleVersion`) yoziladi;
+  // `package_info_plus` shu yerdan o'qiydi, shuning uchun ikkalasi doim
+  // bir xil bo'ladi.
   Future<void> _loadAppVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
       if (mounted) {
-        setState(() => _appVersion = info.version);
+        setState(() => _appVersion = '${info.version}+${info.buildNumber}');
       }
     } catch (_) {}
   }
@@ -472,17 +477,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   Gap(20.h),
-                  // Version
-                  Center(
-                    child: Text(
-                      '${AppStrings.appName} · ${AppStrings.version} $_appVersion',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF8E8E93),
+                  // Version — `pubspec.yaml`dagi `version:` maydonidan
+                  // (native build orqali) o'qiladi, shuning uchun yuklanmaguncha
+                  // hech narsa ko'rsatilmaydi.
+                  if (_appVersion.isNotEmpty)
+                    Center(
+                      child: Text(
+                        '${AppStrings.appName} · ${AppStrings.version} $_appVersion',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF8E8E93),
+                        ),
                       ),
                     ),
-                  ),
                   Gap(CustomBottomNavBar.reservedBottomSpace(context)/2),
                 ],
               ),

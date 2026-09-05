@@ -7,11 +7,13 @@ class CategoryModel {
   final String id;
   final String _titleKey;
   final String iconAsset;
+  final bool comingSoon;
 
   const CategoryModel({
     required this.id,
     required String titleKey,
     required this.iconAsset,
+    this.comingSoon = false,
   }) : _titleKey = titleKey;
 
   String get title => AppStrings.tr(_titleKey);
@@ -19,7 +21,17 @@ class CategoryModel {
   static List<CategoryModel> get categories => const [
         CategoryModel(id: 'restoran', titleKey: 'category_restoran', iconAsset: AppAssets.iconRestaurantLine),
         CategoryModel(id: 'geym_klub', titleKey: 'category_geym_klub', iconAsset: AppAssets.iconGamepadLine),
-        CategoryModel(id: 'sartaroshxona', titleKey: 'category_sartaroshxona', iconAsset: AppAssets.iconScissorsLine),
-        CategoryModel(id: 'gozallik_saloni', titleKey: 'category_gozallik_saloni', iconAsset: AppAssets.iconSparklingLine),
+        CategoryModel(
+          id: 'sartaroshxona',
+          titleKey: 'category_sartaroshxona',
+          iconAsset: AppAssets.iconScissorsLine,
+          comingSoon: true,
+        ),
+        CategoryModel(
+          id: 'gozallik_saloni',
+          titleKey: 'category_gozallik_saloni',
+          iconAsset: AppAssets.iconSparklingLine,
+          comingSoon: true,
+        ),
       ];
 }
