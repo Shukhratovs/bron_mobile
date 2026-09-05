@@ -3,11 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/language/language_cubit.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/widgets/app_toast.dart';
+
+/// Yordam bo'limining haqiqiy kontakt manzillari — Telegram bot va telefon
+/// raqami. Ko'rsatiladigan matn (`AppStrings.telegramSupportSubtitle` /
+/// `callUsSubtitle`) shu qiymatlar bilan mos kelishi kerak.
+const String _kSupportTelegramUsername = 'bron_support';
+const String _kSupportPhoneNumber = '+998712000000';
 
 class HelpFaqScreen extends StatefulWidget {
   const HelpFaqScreen({super.key});
@@ -18,6 +25,18 @@ class HelpFaqScreen extends StatefulWidget {
 
 class _HelpFaqScreenState extends State<HelpFaqScreen> {
   int? _expandedIndex;
+
+  Future<void> _openTelegram() async {
+    final uri = Uri.parse('https://t.me/$_kSupportTelegramUsername');
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) AppToast.error(context, AppStrings.telegramOpenError);
+  }
+
+  Future<void> _callSupport() async {
+    final uri = Uri(scheme: 'tel', path: _kSupportPhoneNumber);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) AppToast.error(context, AppStrings.callOpenError);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +78,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
                 children: [
                   // Telegram option
                   InkWell(
-                    onTap: () {
-                      AppToast.info(context, AppStrings.telegramOpening);
-                    },
+                    onTap: _openTelegram,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
@@ -107,9 +124,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
                   ),
                   // Call option
                   InkWell(
-                    onTap: () {
-                      AppToast.info(context, AppStrings.callOpening);
-                    },
+                    onTap: _callSupport,
                     borderRadius: BorderRadius.vertical(bottom: Radius.circular(16.r)),
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),

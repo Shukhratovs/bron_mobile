@@ -370,7 +370,9 @@ class _BookingsScreenState extends State<BookingsScreen> with SingleTickerProvid
                   Text('${entry.position > 0 ? entry.position - 1 : 0} ${AppStrings.persons}', style: GoogleFonts.plusJakartaSans(fontSize: 13.5.sp, fontWeight: FontWeight.w700, color: const Color(0xFF181A20))),
                 ],
               ),
-              Gap(6.h),
+              Gap(8.h),
+              _queueProgressBar(entry.position),
+              Gap(10.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -385,6 +387,24 @@ class _BookingsScreenState extends State<BookingsScreen> with SingleTickerProvid
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Navbat qancha oldinga siljigani uchun tasviriy indikator: `position`
+  // qancha kichik bo'lsa (navbat boshiga yaqin), chiziq shuncha to'lib boradi.
+  // Backend navbatning boshlang'ich uzunligini qaytarmaydi, shuning uchun
+  // aniq foiz emas — faqat "yaqinlashyapsiz" degan vizual signal.
+  Widget _queueProgressBar(int position) {
+    const cap = 8;
+    final progress = (1 - (position.clamp(1, cap) / cap)).clamp(0.05, 1.0);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4.r),
+      child: LinearProgressIndicator(
+        value: progress,
+        minHeight: 5.h,
+        backgroundColor: const Color(0xFFF3F4F6),
+        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFDC3009)),
       ),
     );
   }

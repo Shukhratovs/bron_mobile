@@ -23,6 +23,7 @@ import '../../domain/repositories/booking_repository.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/widgets/app_toast.dart';
+import 'change_booking_time_screen.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -177,25 +178,20 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Future<void> _showChangeTimeSheet() async {
     final booking = _booking;
     if (booking == null) return;
-    final localStart = booking.startsAt.toLocal();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: localStart.hour, minute: localStart.minute),
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeBookingTimeScreen(
+          booking: booking,
+          venueId: booking.venueId,
+          bookingRepository: _repository,
+          venueRepository: _venueRepository,
+        ),
+      ),
     );
-    if (picked == null || !mounted) return;
-
-    final newStart = DateTime(localStart.year, localStart.month, localStart.day, picked.hour, picked.minute);
-    final result = await _repository.changeBookingTime(booking.id, newStart);
-    if (!mounted) return;
-    switch (result) {
-      case Success():
-        AppToast.success(context, 'Vaqt muvaffaqiyatli o\'zgartirildi');
-        _load();
-      case Failure(:final exception):
-        final message = exception.code == 'no_table_available'
-            ? 'Bu vaqtga bo\'sh stol yo\'q'
-            : exception.message;
-        AppToast.error(context, message);
+    if (changed == true && mounted) {
+      AppToast.success(context, 'Vaqt muvaffaqiyatli o\'zgartirildi');
+      _load();
     }
   }
 

@@ -377,6 +377,8 @@ class _FiltrlarScreenState extends State<FiltrlarScreen> {
                       textColor: Colors.white,
                       height: 52.h,
                       borderRadius: 16.r,
+                      fontSize: 15.sp,
+                      padding: EdgeInsets.symmetric(horizontal: 10.w),
                       onPressed: () => Navigator.pop(context, _filters),
                     ),
                   ),

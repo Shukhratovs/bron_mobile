@@ -20,10 +20,8 @@ import '../../../venue/data/repositories/venue_repository_impl.dart';
 import '../../../venue/domain/entities/availability_entity.dart';
 import '../../../venue/domain/entities/venue_entity.dart';
 import '../../../venue/domain/repositories/venue_repository.dart';
-import '../../../booking/presentation/screens/bind_card_screen.dart';
-import '../../../booking/presentation/screens/booking_confirmed_screen.dart';
+import '../../../booking/presentation/screens/booking_confirmation_screen.dart';
 import 'slot_band_boldi_screen.dart';
-import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/app_icon.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
@@ -56,7 +54,6 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
   AvailabilityResult? _slots;
   bool _isLoadingDays = true;
   bool _isLoadingSlots = true;
-  bool _isSubmitting = false;
   String? _errorMessage;
 
   int _guests = 2;
@@ -180,62 +177,28 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
     return (int.tryParse(parts[0]) ?? 0, int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
   }
 
-  Future<void> _confirmBooking({String? cardId}) async {
+  Future<void> _goToConfirmation() async {
     final time = _selectedTime;
-    if (time == null) return;
-    if (cardId == null && !await ensureLoggedIn(context)) return;
+    final slots = _slots;
+    if (time == null || slots == null) return;
+    if (!await ensureLoggedIn(context)) return;
     if (!mounted) return;
-    setState(() => _isSubmitting = true);
     final (h, m) = _parseTime(time);
     final startsAt = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, h, m);
 
-    final result = await _bookingRepository.createBooking(
-      venueId: widget.venue.id,
-      startsAt: startsAt,
-      guests: _guests,
-      zoneId: _selectedZoneId,
-      cardId: cardId,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingConfirmationScreen(
+          venue: widget.venue,
+          startsAt: startsAt,
+          guests: _guests,
+          zoneId: _selectedZoneId,
+          deposit: slots.deposit,
+          bookingRepository: _bookingRepository,
+        ),
+      ),
     );
-    if (!mounted) return;
-    setState(() => _isSubmitting = false);
-
-    switch (result) {
-      case Success(:final data):
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BookingConfirmedScreen(
-              booking: data,
-              venueName: widget.venue.name,
-              venueAddress: widget.venue.address,
-            ),
-          ),
-        );
-      case Failure(:final exception):
-        if (exception.code == 'no_table_available') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SlotBandBoldiScreen(
-                venue: widget.venue,
-                date: startsAt,
-                time: time,
-                guests: _guests,
-              ),
-            ),
-          );
-        } else if (exception.code == 'card_required') {
-          final newCardId = await Navigator.push<String>(
-            context,
-            MaterialPageRoute(builder: (context) => const BindCardScreen()),
-          );
-          if (newCardId != null && mounted) {
-            _confirmBooking(cardId: newCardId);
-          }
-        } else {
-          AppToast.error(context, exception.message);
-        }
-    }
   }
 
   @override
@@ -473,8 +436,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
               text: _selectedTime != null
                   ? '${formatDateShort(_selectedDate)} $_selectedTime • $_guests ${AppStrings.persons} - ${AppStrings.continueBooking}'
                   : AppStrings.selectTimeSlot,
-              isLoading: _isSubmitting,
-              onPressed: _selectedTime == null || maxSeatsExceeded ? null : () => _confirmBooking(),
+              onPressed: _selectedTime == null || maxSeatsExceeded ? null : _goToConfirmation,
             ),
           ],
         ),
@@ -515,6 +477,7 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
     if (slots.slots.isEmpty) {
       return _infoBox(AppStrings.noFreeSlots, Icons.schedule_outlined);
     }
+    final showDepositMark = slots.deposit.required;
     return Wrap(
       spacing: 8.w,
       runSpacing: 8.h,
@@ -540,20 +503,32 @@ class _VaqtTanlashScreenState extends State<VaqtTanlashScreen> {
                         : const Color(0xFFE5E7EB),
               ),
             ),
-            child: Center(
-              child: Text(
-                slot.time,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.sp,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: !slot.available
-                      ? AppColors.textMuted
-                      : isSelected
-                          ? Colors.white
-                          : AppColors.textPrimary,
-                  decoration: slot.available ? null : TextDecoration.lineThrough,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (showDepositMark && slot.available) ...[
+                  AppIcon(
+                    AppAssets.iconWallet3Line,
+                    size: 11.r,
+                    color: isSelected ? Colors.white.withValues(alpha: 0.85) : AppColors.primary,
+                  ),
+                  Gap(3.w),
+                ],
+                Text(
+                  slot.time,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.sp,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: !slot.available
+                        ? AppColors.textMuted
+                        : isSelected
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                    decoration: slot.available ? null : TextDecoration.lineThrough,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         );

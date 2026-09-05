@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_state_view.dart';
 import '../../../../core/widgets/shimmer_skeleton.dart';
 import '../../../profile/data/datasources/profile_remote_data_source.dart';
 import '../../../profile/data/repositories/profile_repository_impl.dart';
+import '../../../profile/presentation/screens/favorites_screen.dart';
 import '../../../profile/presentation/screens/notifications_screen.dart';
 import '../../../search/presentation/screens/filtrlar_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
@@ -149,6 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openFavorites() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritesScreen()));
+  }
+
   void _openNotifications() {
     Navigator.push(
       context,
@@ -212,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onNotificationTap: _openNotifications,
                       onSearchTap: _openSearch,
                       onFilterTap: _openFilters,
+                      onFavoriteTap: _openFavorites,
                     ),
                   ),
                 ),

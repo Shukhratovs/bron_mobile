@@ -228,19 +228,36 @@ class _FullMenuScreenState extends State<FullMenuScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Item icon
-                          Container(
-                            width: 48.r,
-                            height: 48.r,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF2ED),
-                              borderRadius: BorderRadius.circular(10.r),
-                            ),
-                            child: Icon(
-                              item.isPopular ? Icons.local_fire_department_rounded : Icons.restaurant_rounded,
-                              color: AppColors.primary,
-                              size: 24.r,
-                            ),
+                          // Item image
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10.r),
+                            child: item.coverImageUrl == null || item.coverImageUrl!.isEmpty
+                                ? Container(
+                                    width: 48.r,
+                                    height: 48.r,
+                                    decoration: const BoxDecoration(color: Color(0xFFFFF2ED)),
+                                    child: Icon(
+                                      item.isPopular ? Icons.local_fire_department_rounded : Icons.restaurant_rounded,
+                                      color: AppColors.primary,
+                                      size: 24.r,
+                                    ),
+                                  )
+                                : Image.network(
+                                    item.coverImageUrl!,
+                                    width: 48.r,
+                                    height: 48.r,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Container(
+                                      width: 48.r,
+                                      height: 48.r,
+                                      decoration: const BoxDecoration(color: Color(0xFFFFF2ED)),
+                                      child: Icon(
+                                        item.isPopular ? Icons.local_fire_department_rounded : Icons.restaurant_rounded,
+                                        color: AppColors.primary,
+                                        size: 24.r,
+                                      ),
+                                    ),
+                                  ),
                           ),
                           Gap(14.w),
 

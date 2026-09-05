@@ -492,7 +492,7 @@ class _MapScreenState extends State<MapScreen> {
           if (_mapReady && !_mapError)
             YandexMap(
               mapType: MapType.vector,
-              logoPadding:  MapPadding(horizontal: 80, vertical: (MediaQuery.of(context).size.height * 2.5).toInt()),
+              logoPadding:  MapPadding(horizontal: 80, vertical: (MediaQuery.of(context).size.height * 3).toInt()),
               // Xarita faqat O'zbekiston hududi bilan cheklanadi — boshqa
               // davlatlarga panorama qilib chiqib ketib bo'lmaydi, zoom
               // qilib uzoqlashtirish ham butun mamlakatni ko'rsatadigan

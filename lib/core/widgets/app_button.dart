@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../constants/app_colors.dart';
 
 class AppButton extends StatelessWidget {
@@ -48,9 +50,13 @@ class AppButton extends StatelessWidget {
     double? width = double.infinity,
     double? height,
     double? borderRadius,
+    double? fontSize,
+    FontWeight? fontWeight,
+    TextStyle? textStyle,
     bool isLoading = false,
     Widget? prefixIcon,
     Widget? suffixIcon,
+    EdgeInsetsGeometry? padding,
   }) {
     return AppButton(
       key: key,
@@ -61,9 +67,13 @@ class AppButton extends StatelessWidget {
       width: width,
       height: height,
       borderRadius: borderRadius,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      textStyle: textStyle,
       isLoading: isLoading,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
+      padding: padding,
     );
   }
 
@@ -75,9 +85,13 @@ class AppButton extends StatelessWidget {
     double? width = double.infinity,
     double? height,
     double? borderRadius,
+    double? fontSize,
+    FontWeight? fontWeight,
+    TextStyle? textStyle,
     bool isLoading = false,
     Widget? prefixIcon,
     Widget? suffixIcon,
+    EdgeInsetsGeometry? padding,
   }) {
     return AppButton(
       key: key,
@@ -88,9 +102,13 @@ class AppButton extends StatelessWidget {
       width: width,
       height: height,
       borderRadius: borderRadius,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      textStyle: textStyle,
       isLoading: isLoading,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
+      padding: padding,
     );
   }
 
@@ -104,9 +122,13 @@ class AppButton extends StatelessWidget {
     double? width = double.infinity,
     double? height,
     double? borderRadius,
+    double? fontSize,
+    FontWeight? fontWeight,
+    TextStyle? textStyle,
     bool isLoading = false,
     Widget? prefixIcon,
     Widget? suffixIcon,
+    EdgeInsetsGeometry? padding,
   }) {
     return AppButton(
       key: key,
@@ -118,9 +140,13 @@ class AppButton extends StatelessWidget {
       width: width,
       height: height,
       borderRadius: borderRadius,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      textStyle: textStyle,
       isLoading: isLoading,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
+      padding: padding,
     );
   }
 
@@ -130,6 +156,71 @@ class AppButton extends StatelessWidget {
     final effectiveTextColor = textColor ?? AppColors.backgroundDark;
     final effectiveBorderRadius = borderRadius ?? 20.r;
     final effectiveHeight = height ?? 54.h;
+
+    final content = isLoading
+        ? SizedBox(
+            width: 22.r,
+            height: 22.r,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
+            ),
+          )
+        : FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (prefixIcon != null) ...[
+                  prefixIcon!,
+                  Gap(8.w),
+                ],
+                Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: textStyle ??
+                      GoogleFonts.plusJakartaSans(
+                        fontSize: fontSize ?? 16.sp,
+                        fontWeight: fontWeight ?? FontWeight.w600,
+                        color: effectiveTextColor,
+                      ),
+                ),
+                if (suffixIcon != null) ...[
+                  Gap(8.w),
+                  suffixIcon!,
+                ],
+              ],
+            ),
+          );
+
+    // iOS 26 Liquid Glass button. Android keeps the Material button below —
+    // liquid_glass_widgets renders its background colors incorrectly there.
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final isOutline = effectiveBgColor == Colors.transparent;
+      return SizedBox(
+        width: width,
+        height: effectiveHeight,
+        child: GlassButton.custom(
+          onTap: (isLoading || onPressed == null) ? () {} : onPressed!,
+          enabled: !isLoading && onPressed != null,
+          useOwnLayer: true,
+          width: width,
+          height: effectiveHeight,
+          shape: LiquidRoundedRectangle(
+            borderRadius: effectiveBorderRadius,
+            side: borderColor != null ? BorderSide(color: borderColor!, width: 1.w) : BorderSide.none,
+          ),
+          style: isOutline ? GlassButtonStyle.transparent : GlassButtonStyle.prominent,
+          settings: isOutline ? null : LiquidGlassSettings(glassColor: effectiveBgColor.withValues(alpha: 0.55)),
+          child: Padding(
+            padding: padding ?? EdgeInsets.symmetric(horizontal: 16.w),
+            child: content,
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       width: width,
@@ -142,7 +233,7 @@ class AppButton extends StatelessWidget {
           disabledBackgroundColor: effectiveBgColor.withValues(alpha: 0.6),
           disabledForegroundColor: effectiveTextColor.withValues(alpha: 0.6),
           elevation: 0,
-          padding: padding ?? EdgeInsets.symmetric(horizontal: 20.w),
+          padding: padding ?? EdgeInsets.symmetric(horizontal: 16.w),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(effectiveBorderRadius),
             side: borderColor != null
@@ -150,39 +241,7 @@ class AppButton extends StatelessWidget {
                 : BorderSide.none,
           ),
         ),
-        child: isLoading
-            ? SizedBox(
-                width: 22.r,
-                height: 22.r,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (prefixIcon != null) ...[
-                    prefixIcon!,
-                    Gap(8.w),
-                  ],
-                  Text(
-                    text,
-                    textAlign: TextAlign.center,
-                    style: textStyle ??
-                        GoogleFonts.plusJakartaSans(
-                          fontSize: fontSize ?? 16.sp,
-                          fontWeight: fontWeight ?? FontWeight.w600,
-                          color: effectiveTextColor,
-                        ),
-                  ),
-                  if (suffixIcon != null) ...[
-                    Gap(8.w),
-                    suffixIcon!,
-                  ],
-                ],
-              ),
+        child: content,
       ),
     );
   }

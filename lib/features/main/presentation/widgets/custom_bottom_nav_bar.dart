@@ -62,13 +62,14 @@ class CustomBottomNavBar extends StatefulWidget {
   /// qoldirilishi kerak bo'lgan joy: panelning o'zi (~60.h: konteyner
   /// padding 12 + item padding 12 + ikonka 20 + gap 2 + matn ~14) + uning
   /// pastki bo'shlig'i (24.h, `build()`dagi `EdgeInsets.fromLTRB` bilan bir
-  /// xil) + kichik nafas oralig'i (12.h). Oldin har ekran o'zi taxminiy
-  /// (120.h/100.h) raqam yozgan edi — ba'zilarida panel tagida ortiqcha
-  /// katta bo'sh joy qolar edi.
+  /// xil) + kichik nafas oralig'i (12.h) + qo'shimcha 20.h (kontent panel
+  /// ortida qolib ko'rinmay qolmasligi uchun). Oldin har ekran o'zi
+  /// taxminiy (120.h/100.h) raqam yozgan edi — ba'zilarida panel tagida
+  /// ortiqcha katta bo'sh joy qolar edi.
   static double reservedBottomSpace(BuildContext context) =>
       defaultTargetPlatform == TargetPlatform.iOS || kForceIosNavBarOnAndroid
           ? iosNavBarReservedBottomSpace(context)
-          : 96.h + MediaQuery.of(context).padding.bottom;
+          : 116.h + MediaQuery.of(context).padding.bottom;
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();

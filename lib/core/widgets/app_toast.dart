@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../constants/app_assets.dart';
 import '../constants/app_colors.dart';
 import 'app_icon.dart';
@@ -143,6 +145,54 @@ class _AppToastContentState extends State<_AppToastContent> with SingleTickerPro
   @override
   Widget build(BuildContext context) {
     final visual = _visual;
+    final toastRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 32.r,
+          height: 32.r,
+          decoration: BoxDecoration(color: visual.soft, shape: BoxShape.circle),
+          child: Center(child: AppIcon(visual.icon, size: 17.r, color: visual.color)),
+        ),
+        Gap(10.w),
+        Expanded(
+          child: Text(
+            widget.message,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              height: 1.3,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    // iOS 26 Liquid Glass toast. Android keeps the solid-white card below —
+    // liquid_glass_widgets renders its background colors incorrectly there.
+    final card = defaultTargetPlatform == TargetPlatform.iOS
+        ? GlassCard(
+            useOwnLayer: true,
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            shape: LiquidRoundedSuperellipse(borderRadius: 18.r),
+            child: toastRow,
+          )
+        : Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18.r),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 10)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1)),
+              ],
+            ),
+            child: toastRow,
+          );
+
     return Positioned(
       top: 0,
       left: 0,
@@ -172,42 +222,7 @@ class _AppToastContentState extends State<_AppToastContent> with SingleTickerPro
                 },
                 child: Material(
                   color: Colors.transparent,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18.r),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 10)),
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1)),
-                      ],
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 32.r,
-                          height: 32.r,
-                          decoration: BoxDecoration(color: visual.soft, shape: BoxShape.circle),
-                          child: Center(child: AppIcon(visual.icon, size: 17.r, color: visual.color)),
-                        ),
-                        Gap(10.w),
-                        Expanded(
-                          child: Text(
-                            widget.message,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13.5.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: card,
                 ),
               ),
             ),

@@ -11,12 +11,14 @@ class HomeHeaderWidget extends StatelessWidget {
   final VoidCallback? onNotificationTap;
   final VoidCallback? onSearchTap;
   final VoidCallback? onFilterTap;
+  final VoidCallback? onFavoriteTap;
 
   const HomeHeaderWidget({
     super.key,
     this.onNotificationTap,
     this.onSearchTap,
     this.onFilterTap,
+    this.onFavoriteTap,
   });
 
   @override
@@ -36,6 +38,7 @@ class HomeHeaderWidget extends StatelessWidget {
           HomeHeaderSearchRow(
             onSearchTap: onSearchTap,
             onFilterTap: onFilterTap,
+            onFavoriteTap: onFavoriteTap,
           ),
         ],
       ),
@@ -76,8 +79,14 @@ class HomeHeaderLogoRow extends StatelessWidget {
 class HomeHeaderSearchRow extends StatelessWidget {
   final VoidCallback? onSearchTap;
   final VoidCallback? onFilterTap;
+  final VoidCallback? onFavoriteTap;
 
-  const HomeHeaderSearchRow({super.key, this.onSearchTap, this.onFilterTap});
+  const HomeHeaderSearchRow({
+    super.key,
+    this.onSearchTap,
+    this.onFilterTap,
+    this.onFavoriteTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +159,25 @@ class HomeHeaderSearchRow extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+        Gap(8.w),
+        GestureDetector(
+          onTap: onFavoriteTap,
+          child: Container(
+            width: 44.r,
+            height: 44.r,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F7F7),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Center(
+              child: AppIcon(
+                AppAssets.iconHeartLine,
+                size: 22.r,
+                color: const Color(0xFF161616),
+              ),
             ),
           ),
         ),
