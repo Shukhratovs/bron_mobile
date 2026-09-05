@@ -3,9 +3,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'custom_bottom_nav_bar.dart' show CustomBottomNavBar;
 
-// TODO(test): revert to false before release — forces the iOS liquid-glass
-// navbar to render on Android too, for on-device testing without an iPhone.
-const bool kForceIosNavBarOnAndroid = true;
+// Android doesn't get the iOS liquid-glass navbar: `liquid_glass_widgets`
+// renders its background colors incorrectly there. Android uses
+// `CustomBottomNavBar`, which has its own working blur background instead.
+const bool kForceIosNavBarOnAndroid = false;
 
 /// Height of the floating glass tab bar (`GlassTabBar.bottom`'s `barHeight`).
 const double iosNavBarHeight = 64.0;

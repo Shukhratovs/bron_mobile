@@ -6,6 +6,7 @@ class MenuItemEntity {
   final int? prepMinutes;
   final bool isPopular;
   final String? categoryId;
+  final String? coverImageUrl;
 
   const MenuItemEntity({
     required this.id,
@@ -15,9 +16,18 @@ class MenuItemEntity {
     this.prepMinutes,
     this.isPopular = false,
     this.categoryId,
+    this.coverImageUrl,
   });
 
   factory MenuItemEntity.fromJson(Map<String, dynamic> json) {
+    final images = (json['images'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    final coverImage = images.isEmpty
+        ? null
+        : images.firstWhere(
+            (i) => i['is_cover'] == true,
+            orElse: () => images.first,
+          );
+
     return MenuItemEntity(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
@@ -26,6 +36,7 @@ class MenuItemEntity {
       prepMinutes: (json['prep_minutes'] as num?)?.toInt(),
       isPopular: json['is_popular'] as bool? ?? false,
       categoryId: json['category_id'] as String?,
+      coverImageUrl: coverImage?['url'] as String?,
     );
   }
 }
